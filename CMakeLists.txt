@@ -22,7 +22,7 @@ include_directories(
     src
 )
 
-add_executable(Crayfish ${SOURCES} "src/main.cpp" "src/RenderFrame.cpp")
+add_executable(Crayfish ${SOURCES} "src/main.cpp" "src/RenderFrame.cpp" "src/Triangle.cpp")
 
 set_target_properties(Crayfish PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
@@ -42,4 +42,8 @@ if (APPLE)
     if (DEBUG)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
     endif()
+
+    include_directories(/opt/homebrew/include/eigen3)
+elseif(UNIX)
+    include_directories(/usr/include/eigen3)
 endif()
