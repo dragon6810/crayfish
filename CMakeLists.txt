@@ -22,9 +22,13 @@ include_directories(
     src
 )
 
-add_executable(Crayfish ${SOURCES} "src/main.cpp")
+add_executable(Crayfish ${SOURCES} "src/main.cpp" "src/RenderFrame.cpp")
 
 set_target_properties(Crayfish PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+find_package(PNG REQUIRED)
+include_directories(${PNG_INCLUDE_DIR})
+target_link_libraries(Crayfish ${PNG_LIBRARY})
 
 find_program(CPPCHECK cppcheck)
 if(CPPCHECK)
