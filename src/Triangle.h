@@ -15,6 +15,8 @@ public:
     Triangle(void);
     Triangle(RenderFrame& rendertarget);
 
+    static bool PointInTriangle(Eigen::Vector2f p, Eigen::Vector2f tri[3]);
+
     void SetRenderTarget(RenderFrame& rendertarget);
 
     void Draw(void);
