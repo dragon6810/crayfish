@@ -85,6 +85,7 @@
         "stop_token": "cpp",
         "text_encoding": "cpp",
         "thread": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "core": "cpp"
     }
 }
