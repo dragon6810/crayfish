@@ -32,32 +32,32 @@ void Camera::ComputeProjectionMatrix(void)
     this->projection = Eigen::Matrix4f::Identity();
 }
 
-Eigen::Vector3f Camera::GetPosition(void)
+Eigen::Vector3f Camera::GetPosition(void) const
 {
     return this->position;
 }
 
-Eigen::Quaternionf Camera::GetRotation(void)
+Eigen::Quaternionf Camera::GetRotation(void) const
 {
     return this->rotation;
 }
 
-float Camera::GetNearPlane(void)
+float Camera::GetNearPlane(void) const
 {
     return this->near;
 }
 
-float Camera::GetFarPlane(void)
+float Camera::GetFarPlane(void) const
 {
     return this->far;
 }
 
-Eigen::Matrix4f Camera::GetViewMatrix(void)
+Eigen::Matrix4f Camera::GetViewMatrix(void) const
 {
     return this->view;
 }
 
-Eigen::Matrix4f Camera::GetProjectionMatrix(void)
+Eigen::Matrix4f Camera::GetProjectionMatrix(void) const
 {
     return this->projection;
 }
@@ -65,11 +65,13 @@ Eigen::Matrix4f Camera::GetProjectionMatrix(void)
 void Camera::SetPosition(Eigen::Vector3f position)
 {
     this->position = position;
+    this->ComputeProjectionMatrix();
 }
 
 void Camera::SetRotation(Eigen::Quaternionf rotation)
 {
     this->rotation = rotation;
+    this->ComputeProjectionMatrix();
 }
 
 void Camera::SetNearPlane(float near)

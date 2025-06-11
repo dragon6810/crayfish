@@ -22,7 +22,7 @@ include_directories(
     src
 )
 
-add_executable(Crayfish ${SOURCES} "src/main.cpp" "src/RenderFrame.cpp" "src/Triangle.cpp" "src/Camera.cpp")
+add_executable(Crayfish ${SOURCES} "src/main.cpp" "src/RenderFrame.cpp" "src/Triangle.cpp" "src/Camera.cpp" "src/CameraOrtho.cpp" "src/Model.cpp" "src/Scene.cpp")
 
 set_target_properties(Crayfish PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 

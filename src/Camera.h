@@ -18,12 +18,12 @@ protected:
 public:
     Camera(void);
 
-    Eigen::Vector3f GetPosition(void);
-    Eigen::Quaternionf GetRotation(void);
-    float GetNearPlane(void);
-    float GetFarPlane(void);
-    Eigen::Matrix4f GetViewMatrix(void);
-    Eigen::Matrix4f GetProjectionMatrix(void);
+    Eigen::Vector3f GetPosition(void) const;
+    Eigen::Quaternionf GetRotation(void) const;
+    float GetNearPlane(void) const;
+    float GetFarPlane(void) const;
+    Eigen::Matrix4f GetViewMatrix(void) const;
+    Eigen::Matrix4f GetProjectionMatrix(void) const;
 
     void SetPosition(Eigen::Vector3f position);
     void SetRotation(Eigen::Quaternionf rotation);

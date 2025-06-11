@@ -110,7 +110,7 @@ void Triangle::Draw(void)
 
 Eigen::Vector3f& Triangle::operator[](int i)
 {
-    assert(i > 0);
+    assert(i >= 0);
     assert(i < 3);
     return this->points[i];
 }
