@@ -19,8 +19,6 @@ Triangle::Triangle(RenderFrame& rendertarget)
 
 bool Triangle::PointInTriangle(Eigen::Vector2f p, Eigen::Vector2f tri[3])
 {
-    const float epsilon = 0.01;
-
     int i;
     Eigen::Vector2f e[2];
     

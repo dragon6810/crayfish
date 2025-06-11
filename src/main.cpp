@@ -13,6 +13,13 @@ int main(int argc, char** argv)
     tri[2][1] = 64;
     tri.SetColor(0xFF00FFFF);
     tri.Draw();
+
+    tri[1][0] = 64;
+    tri[1][1] = 64;
+    tri[2][0] = 0;
+    tri[2][1] = 64;
+    tri.SetColor(0xFF0000FF);
+    tri.Draw();
     
     frame.WritePng("frame.png");
     printf("hello dave\n");
