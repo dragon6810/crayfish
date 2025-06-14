@@ -66,7 +66,7 @@ Model Model::PrimitiveCube(void)
     {
         {0, 1, 5, 4}, // Bottom (-Y)
         {2, 6, 7, 3}, // Top (+Y)
-        {0, 2, 6, 4}, // Left (-X)
+        {0, 4, 6, 2}, // Left (-X)
         {3, 7, 5, 1}, // Right (+X)
         {4, 5, 7, 6}, // Front (+Z)
         {1, 0, 2, 3}, // Back (-Z)
@@ -86,6 +86,7 @@ Model Model::PrimitiveCube(void)
             (i & 2 ? 0.5f : -0.5f),
             (i & 4 ? 0.5f : -0.5f)
         );
+        printf("%d: (%f %f %f)\n", i, model.points[i][0], model.points[i][1], model.points[i][2]);
     }
 
     model.indices.reserve(6 * 2 * 3);

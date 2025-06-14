@@ -13,7 +13,8 @@ int main(int argc, char** argv)
 
     scene.SetRenderTarget(frame);
     scene.models.push_back(Model::PrimitiveCube());
-    scene.models[0].SetRotation(Eigen::Quaternionf(Eigen::AngleAxisf(M_PI * 0.25, Eigen::Vector3f::UnitY())));
+    scene.models[0].SetRotation(Eigen::Quaternionf(Eigen::AngleAxisf(M_PI * 0.25, Eigen::Vector3f::UnitY())) * Eigen::Quaternionf(Eigen::AngleAxisf(M_PI * 0.15, Eigen::Vector3f::UnitX())));
+    scene.models[0].SetScale(Eigen::Vector3f(4.0, 4.0, 4.0));
     camera.SetDimensions(Eigen::Vector2f(8, 8));
     camera.SetPosition(Eigen::Vector3f(0, 0, -10));
 
