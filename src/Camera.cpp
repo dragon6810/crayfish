@@ -65,13 +65,13 @@ Eigen::Matrix4f Camera::GetProjectionMatrix(void) const
 void Camera::SetPosition(Eigen::Vector3f position)
 {
     this->position = position;
-    this->ComputeProjectionMatrix();
+    this->ComputeViewMatrix();
 }
 
 void Camera::SetRotation(Eigen::Quaternionf rotation)
 {
     this->rotation = rotation;
-    this->ComputeProjectionMatrix();
+    this->ComputeViewMatrix();
 }
 
 void Camera::SetNearPlane(float near)

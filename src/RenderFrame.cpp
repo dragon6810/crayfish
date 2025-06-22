@@ -1,17 +1,25 @@
 #include "RenderFrame.h"
 
 #include <assert.h>
+#include <math.h>
 
 #include <png.h>
 
 RenderFrame::RenderFrame(uint64_t width, uint64_t height, bool clear)
 {
+    int i;
+
     this->size[0] = width;
     this->size[1] = height;
 
     this->pixels.resize(width * height);
+    this->depths.resize(width * height);
     if(clear)
+    {
         memset(this->pixels.data(), 0, width * height * sizeof(this->pixels[0]));
+        for(i=0; i<width*height; i++)
+            this->depths[i] = 1.0;
+    }
 }
 
 void RenderFrame::WritePng(const char* name)

@@ -50,6 +50,16 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
         b[i] = worldpoints[2][i] - worldpoints[0][i];
     }
 
+    for(i=0; i<3; i++)
+        viewpoints[i] = camera->GetViewMatrix() * worldpoints[i];
+
+    for(i=0; i<3; i++)
+    {
+        screenpoints[i] = camera->GetProjectionMatrix() * viewpoints[i];
+        if(screenpoints[i][2] > 1 || screenpoints[i][2] < -1)
+            return;
+    }
+
     normal = a.cross(b).normalized();
     light = normal.dot(Eigen::Vector3f(0, 1, 0)) / 2.0 + 0.5 ;
     if(light > 1)
@@ -68,21 +78,12 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
     color |= ((uint32_t) (vcolor[1] * 255.0)) <<  8;
     color |= ((uint32_t) (vcolor[2] * 255.0)) <<  0;
 
-    for(i=0; i<3; i++)
-        viewpoints[i] = camera->GetViewMatrix() * worldpoints[i];
-
-    for(i=0; i<3; i++)
-        screenpoints[i] = camera->GetProjectionMatrix() * viewpoints[i];
-
     //for(i=0; i<3; i++)
     //    printf("(%f %f %f %f) ", screenpoints[i][0], screenpoints[i][1], screenpoints[i][2], screenpoints[i][3]);
     //printf("\n");
 
     for(i=0; i<3; i++)
-    {
-        tri[i][0] = (screenpoints[i][0] / 2.0 + 0.5) * rendertarget->size[0];
-        tri[i][1] = (-screenpoints[i][1] / 2.0 + 0.5) * rendertarget->size[1];
-    }
+        tri[i] = screenpoints[i];
     tri.SetColor(color);
     tri.Draw();
 }

@@ -5,16 +5,46 @@ Triangle::Triangle(void)
     int i;
 
     for(i=0; i<3; i++)
-        this->points[i] = Eigen::Vector3f(0, 0, 0);
+        this->points[i] = Eigen::Vector4f(0, 0, 0, 1);
 }
 
 Triangle::Triangle(RenderFrame& rendertarget)
 {
     int i;
 
-    for(i=0; i<3; i++)
-        this->points[i] = Eigen::Vector3f(0, 0, 0);
+    for(i=0; i<4; i++)
+        this->points[i] = Eigen::Vector4f(0, 0, 0, 1);
     this->rendertarget = &rendertarget;
+}
+
+float Triangle::TriangleArea(Eigen::Vector2f tri[3])
+{
+    return 0.5f * std::abs
+    (
+        tri[0][0] * (tri[1][1] - tri[2][1]) +
+        tri[1][0] * (tri[2][1] - tri[0][1]) +
+        tri[2][0] * (tri[0][1] - tri[1][1])
+    );
+}
+
+float Triangle::TriangleLerp(Eigen::Vector2f p, float vals[3], Eigen::Vector2f tri[3])
+{
+    int i;
+
+    float area;
+    float barycentric[3];
+    Eigen::Vector2f curtri[3];
+
+    area = TriangleArea(tri);
+    for(i=0; i<3; i++)
+    {
+        curtri[0] = tri[(i + 2) % 3];
+        curtri[1] = p;
+        curtri[2] = tri[(i + 1) % 3];
+        barycentric[i] = TriangleArea(curtri) / area;
+    }
+
+    return vals[0] * barycentric[0] + vals[1] * barycentric[1] + vals[2] * barycentric[2];
 }
 
 bool Triangle::PointInTriangle(Eigen::Vector2f p, Eigen::Vector2f tri[3])
@@ -62,6 +92,8 @@ void Triangle::Draw(void)
 
     int mins[2], maxs[2];
     Eigen::Vector2f screentri[3];
+    Eigen::Vector2f v;
+    float depths[3], depth;
 
     if(!this->rendertarget)
     {
@@ -71,9 +103,9 @@ void Triangle::Draw(void)
 
     for(i=0; i<3; i++)
     {
-        screentri[i].x() = this->points[i].x();
-        screentri[i].y() = this->points[i].y();
-
+        screentri[i].x() = ( this->points[i].x() / 2.0 + 0.5) * this->rendertarget->size[0];
+        screentri[i].y() = (-this->points[i].y() / 2.0 + 0.5) * this->rendertarget->size[1];
+        depths[i] = this->points[i][2];
         if(screentri[i].x() < mins[0] || !i)
             mins[0] = screentri[i].x();
         if(screentri[i].y() < mins[1] || !i)
@@ -102,13 +134,27 @@ void Triangle::Draw(void)
             if(!this->PointInTriangle(Eigen::Vector2f(x, y), screentri))
                 continue;
 
+            v = Eigen::Vector2f(x, y);
+            depth = TriangleLerp(v, depths, screentri);
+
+            depth = depth / 2.0 + 0.5;
+            depth *= 60;
+            if(depth > 1)
+                depth = 1;
+            printf("d: %f\n", depth);
             p = this->rendertarget->size[0] * y + x;
             this->rendertarget->pixels[p] = this->color;
+            #if 1
+            this->rendertarget->pixels[p] = 0xFF000000;
+            this->rendertarget->pixels[p] |= ((uint32_t) (depth * 255)) << 16;
+            this->rendertarget->pixels[p] |= ((uint32_t) (depth * 255)) <<  8;
+            this->rendertarget->pixels[p] |= ((uint32_t) (depth * 255)) <<  0;
+            #endif
         }
     }
 }
 
-Eigen::Vector3f& Triangle::operator[](int i)
+Eigen::Vector4f& Triangle::operator[](int i)
 {
     assert(i >= 0);
     assert(i < 3);

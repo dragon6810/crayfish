@@ -16,7 +16,7 @@ int main(int argc, char** argv)
     scene.models[0].SetScale(Eigen::Vector3f(1.0, 1.0, 1.0));
     scene.models[0].SetPosition(Eigen::Vector3f(0.0, -1.0, 0.0));
     camera.SetDimensions(Eigen::Vector2f(8, 8));
-    camera.SetPosition(Eigen::Vector3f(0, 0, -10));
+    camera.SetPosition(Eigen::Vector3f(0, 0, 8));
 
     scene.Render((Camera*)&camera);
     

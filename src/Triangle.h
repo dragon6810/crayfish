@@ -9,13 +9,17 @@
 class Triangle
 {
 private:
-    Eigen::Vector3f points[3];
+    Eigen::Vector4f points[3];
     RenderFrame* rendertarget = NULL;
     uint32_t color = 0xFFFFFFFF;
 public:
     Triangle(void);
     Triangle(RenderFrame& rendertarget);
 
+    float depths[3];
+
+    static float TriangleArea(Eigen::Vector2f tri[3]);
+    static float TriangleLerp(Eigen::Vector2f p, float vals[3], Eigen::Vector2f tri[3]);
     static bool PointInTriangle(Eigen::Vector2f p, Eigen::Vector2f tri[3]);
 
     void SetRenderTarget(RenderFrame& rendertarget);
@@ -24,5 +28,5 @@ public:
 
     void Draw(void);
 
-    Eigen::Vector3f& operator[](int i);
+    Eigen::Vector4f& operator[](int i);
 };
