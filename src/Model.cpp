@@ -1,5 +1,6 @@
 #include "Model.h"
 
+#include "Random.h"
 #include "Triangle.h"
 
 void Model::ComputeTransform(void)
@@ -22,6 +23,9 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
 {
     int i, j;
 
+    float light;
+    Eigen::Vector3f vcolor;
+    Eigen::Vector3f a, b, normal;
     Eigen::Vector4f mdlpoints[3], worldpoints[3], viewpoints[3], screenpoints[3];
     Triangle tri(*rendertarget);
 
@@ -33,8 +37,27 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
         mdlpoints[i][3] = 1.0;
     }
 
+    vcolor[0] = (float) ((color & 0x00FF0000) >> 16) / 255.0;
+    vcolor[1] = (float) ((color & 0x0000FF00) >>  8) / 255.0;
+    vcolor[2] = (float) ((color & 0x000000FF) >>  0) / 255.0;
+
     for(i=0; i<3; i++)
         worldpoints[i] = this->transform * mdlpoints[i];
+
+    for(i=0; i<3; i++)
+    {
+        a[i] = worldpoints[1][i] - worldpoints[0][i];
+        b[i] = worldpoints[2][i] - worldpoints[0][i];
+    }
+
+    normal = a.cross(b).normalized();
+    //light = a.dot(Eigen::Vector3f(0, 1, 0)) + 0.25;
+    //vcolor *= light;
+    vcolor = normal;
+    color = 0xFF000000;
+    color |= ((uint32_t) (vcolor[0] * 255.0)) << 16;
+    color |= ((uint32_t) (vcolor[1] * 255.0)) <<  8;
+    color |= ((uint32_t) (vcolor[2] * 255.0)) <<  0;
 
     for(i=0; i<3; i++)
         viewpoints[i] = camera->GetViewMatrix() * worldpoints[i];
@@ -49,7 +72,7 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
     for(i=0; i<3; i++)
     {
         tri[i][0] = (screenpoints[i][0] / 2.0 + 0.5) * rendertarget->size[0];
-        tri[i][1] = (screenpoints[i][1] / 2.0 + 0.5) * rendertarget->size[1];
+        tri[i][1] = (-screenpoints[i][1] / 2.0 + 0.5) * rendertarget->size[1];
     }
     tri.SetColor(color);
     tri.Draw();
@@ -219,5 +242,5 @@ void Model::Render(const Camera* camera, RenderFrame* rendertarget)
     }
 
     for(i=0; i<this->indices.size(); i+=3)
-        this->DrawModelTri(this->indices[i], this->indices[i+1], this->indices[i+2], camera, rendertarget, 0xFFFFFFFF);
+        this->DrawModelTri(this->indices[i], this->indices[i+1], this->indices[i+2], camera, rendertarget, Random::UInt(i) | 0xFF000000);
 }
