@@ -53,7 +53,12 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
     normal = a.cross(b).normalized();
     //light = a.dot(Eigen::Vector3f(0, 1, 0)) + 0.25;
     //vcolor *= light;
-    vcolor = normal;
+    for(i=0; i<3; i++)
+    {
+        vcolor[i] = normal[i];
+        if(vcolor[i] < 0)
+            vcolor[i] = 0;
+    }
     color = 0xFF000000;
     color |= ((uint32_t) (vcolor[0] * 255.0)) << 16;
     color |= ((uint32_t) (vcolor[1] * 255.0)) <<  8;
@@ -179,9 +184,9 @@ Model Model::LoadOBJ(const char* path)
                 fprintf(stderr, "error in obj \"%s\": expected face definition.\n", path);
                 break;
             }
-            m.indices.push_back(f[0]);
-            m.indices.push_back(f[1]);
-            m.indices.push_back(f[2]);
+            m.indices.push_back(f[0] - 1);
+            m.indices.push_back(f[1] - 1);
+            m.indices.push_back(f[2] - 1);
             break;
         default:
             fprintf(stderr, "error in obj \"%s\": expected vertex or face definition.\n", path);
