@@ -84,7 +84,7 @@ void Triangle::Draw(void)
             maxs[1] = screentri[i].y();
     }
 
-    printf("(%d, %d), (%d %d)\n", mins[0], mins[1], maxs[0], maxs[1]);
+    //printf("(%d, %d), (%d %d)\n", mins[0], mins[1], maxs[0], maxs[1]);
 
     if(mins[0] < 0)
         mins[0] = 0;
