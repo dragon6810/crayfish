@@ -37,18 +37,8 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
         mdlpoints[i][3] = 1.0;
     }
 
-    vcolor[0] = (float) ((color & 0x00FF0000) >> 16) / 255.0;
-    vcolor[1] = (float) ((color & 0x0000FF00) >>  8) / 255.0;
-    vcolor[2] = (float) ((color & 0x000000FF) >>  0) / 255.0;
-
     for(i=0; i<3; i++)
         worldpoints[i] = this->transform * mdlpoints[i];
-
-    for(i=0; i<3; i++)
-    {
-        a[i] = worldpoints[1][i] - worldpoints[0][i];
-        b[i] = worldpoints[2][i] - worldpoints[0][i];
-    }
 
     for(i=0; i<3; i++)
         viewpoints[i] = camera->GetViewMatrix() * worldpoints[i];
@@ -60,10 +50,18 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
             return;
     }
 
-    normal = a.cross(b).normalized();
-    light = normal.dot(Eigen::Vector3f(0, 1, 0)) / 2.0 + 0.5 ;
+    for(i=0; i<3; i++)
+    {
+        a[i] = worldpoints[1][i] - worldpoints[0][i];
+        b[i] = worldpoints[2][i] - worldpoints[0][i];
+    }
+    normal = b.cross(a).normalized();
+    light = normal.dot(Eigen::Vector3f(0, 1, 0)) / 2.0 + 0.5;
     if(light > 1)
         light = 1;
+    vcolor[0] = (float) ((color & 0x00FF0000) >> 16) / 255.0;
+    vcolor[1] = (float) ((color & 0x0000FF00) >>  8) / 255.0;
+    vcolor[2] = (float) ((color & 0x000000FF) >>  0) / 255.0;
     vcolor *= light;
     #if 0
     for(i=0; i<3; i++)
@@ -189,9 +187,9 @@ Model Model::LoadOBJ(const char* path)
                 fprintf(stderr, "error in obj \"%s\": expected face definition.\n", path);
                 break;
             }
-            m.indices.push_back(f[0] - 1);
-            m.indices.push_back(f[1] - 1);
             m.indices.push_back(f[2] - 1);
+            m.indices.push_back(f[1] - 1);
+            m.indices.push_back(f[0] - 1);
             break;
         default:
             fprintf(stderr, "error in obj \"%s\": expected vertex or face definition.\n", path);

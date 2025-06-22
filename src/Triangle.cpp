@@ -134,21 +134,25 @@ void Triangle::Draw(void)
             if(!this->PointInTriangle(Eigen::Vector2f(x, y), screentri))
                 continue;
 
+            p = this->rendertarget->size[0] * y + x;
+
             v = Eigen::Vector2f(x, y);
             depth = TriangleLerp(v, depths, screentri);
+            if(depth > this->rendertarget->depths[p])
+                continue;
+
+            this->rendertarget->depths[p] = depth;
 
             depth = depth / 2.0 + 0.5;
             depth *= 60;
             if(depth > 1)
                 depth = 1;
-            printf("d: %f\n", depth);
-            p = this->rendertarget->size[0] * y + x;
             this->rendertarget->pixels[p] = this->color;
-            #if 1
+            #if 0
             this->rendertarget->pixels[p] = 0xFF000000;
-            this->rendertarget->pixels[p] |= ((uint32_t) (depth * 255)) << 16;
-            this->rendertarget->pixels[p] |= ((uint32_t) (depth * 255)) <<  8;
-            this->rendertarget->pixels[p] |= ((uint32_t) (depth * 255)) <<  0;
+            this->rendertarget->pixels[p] |= ((uint32_t) (depth * 255.0)) << 16;
+            this->rendertarget->pixels[p] |= ((uint32_t) (depth * 255.0)) <<  8;
+            this->rendertarget->pixels[p] |= ((uint32_t) (depth * 255.0)) <<  0;
             #endif
         }
     }
