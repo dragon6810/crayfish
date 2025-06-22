@@ -51,14 +51,18 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
     }
 
     normal = a.cross(b).normalized();
-    //light = a.dot(Eigen::Vector3f(0, 1, 0)) + 0.25;
-    //vcolor *= light;
+    light = normal.dot(Eigen::Vector3f(0, 1, 0)) / 2.0 + 0.5 ;
+    if(light > 1)
+        light = 1;
+    vcolor *= light;
+    #if 0
     for(i=0; i<3; i++)
     {
         vcolor[i] = normal[i];
         if(vcolor[i] < 0)
             vcolor[i] = 0;
     }
+    #endif
     color = 0xFF000000;
     color |= ((uint32_t) (vcolor[0] * 255.0)) << 16;
     color |= ((uint32_t) (vcolor[1] * 255.0)) <<  8;
