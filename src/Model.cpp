@@ -1,5 +1,7 @@
 #include "Model.h"
 
+#include <thread>
+
 #include "Random.h"
 #include "Triangle.h"
 
@@ -245,9 +247,15 @@ void Model::SetScale(Eigen::Vector3f scale)
     this->ComputeTransform();
 }
 
+const int nthreads = 8;
+
 void Model::Render(const Camera* camera, RenderFrame* rendertarget)
 {
-    int i;
+    int i, t;
+
+    uint64_t ntris, threadtris;
+    std::vector<std::thread> threads;
+    uint64_t start, end;
 
     assert(camera);
     assert(rendertarget);
@@ -258,6 +266,40 @@ void Model::Render(const Camera* camera, RenderFrame* rendertarget)
         return;
     }
 
-    for(i=0; i<this->indices.size(); i+=3)
-        this->DrawModelTri(this->indices[i], this->indices[i+1], this->indices[i+2], camera, rendertarget, Random::UInt(i) | 0xFF000000);
+    ntris = this->indices.size() / 3;
+    threadtris = (ntris + nthreads - 1) / nthreads;
+
+    for(t=0; t<nthreads; t++)
+    {
+        start = t * threadtris;
+        end = start + threadtris;
+        if(end > ntris)
+            end = ntris;
+        
+        if(start >= end)
+            break;
+
+        threads.emplace_back([this, camera, rendertarget, start, end, t]()
+        {
+            int i, j;
+
+            int v[3];
+
+            printf("thread %llu rendering tris %llu-%llu\n", t, start, end);
+
+            for(i=start; i<end; i++)
+            {
+                for(j=0; j<3; j++)
+                    v[j] = this->indices[i * 3 + j];
+                this->DrawModelTri(v[0], v[1], v[2], camera, rendertarget, Random::UInt(i) | 0xFF000000);
+            }
+
+            printf("thread %llu done\n", t);
+        });
+    }
+
+    for(t=0; t<nthreads; t++)
+        threads[t].join();
+
+    printf("model done\n");
 }

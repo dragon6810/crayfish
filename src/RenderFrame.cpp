@@ -14,11 +14,15 @@ RenderFrame::RenderFrame(uint64_t width, uint64_t height, bool clear)
 
     this->pixels.resize(width * height);
     this->depths.resize(width * height);
+    this->locks.resize(width * height);
     if(clear)
     {
         memset(this->pixels.data(), 0, width * height * sizeof(this->pixels[0]));
         for(i=0; i<width*height; i++)
+        {
             this->depths[i] = 1.0;
+            locks[i] = std::make_unique<std::mutex>();
+        }
     }
 }
 

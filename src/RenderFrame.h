@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <stdint.h>
 #include <vector>
 
@@ -9,6 +10,7 @@ public:
     uint64_t size[2];
     std::vector<uint32_t> pixels;
     std::vector<float> depths;
+    std::vector<std::unique_ptr<std::mutex>> locks;
 
     RenderFrame(uint64_t width, uint64_t height, bool clear);
 
