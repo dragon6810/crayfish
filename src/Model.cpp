@@ -46,6 +46,9 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
     for(i=0; i<3; i++)
     {
         screenpoints[i] = camera->GetProjectionMatrix() * viewpoints[i];
+        screenpoints[i][0] /= screenpoints[i][3];
+        screenpoints[i][1] /= screenpoints[i][3];
+        screenpoints[i][2] /= screenpoints[i][3];
         if(screenpoints[i][2] > 1 || screenpoints[i][2] < -1)
             return;
     }
@@ -75,10 +78,6 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
     color |= ((uint32_t) (vcolor[0] * 255.0)) << 16;
     color |= ((uint32_t) (vcolor[1] * 255.0)) <<  8;
     color |= ((uint32_t) (vcolor[2] * 255.0)) <<  0;
-
-    //for(i=0; i<3; i++)
-    //    printf("(%f %f %f %f) ", screenpoints[i][0], screenpoints[i][1], screenpoints[i][2], screenpoints[i][3]);
-    //printf("\n");
 
     for(i=0; i<3; i++)
         tri[i] = screenpoints[i];

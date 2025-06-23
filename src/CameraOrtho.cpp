@@ -1,5 +1,10 @@
 #include "CameraOrtho.h"
 
+CameraOrtho::CameraOrtho(void) : Camera()
+{
+    this->ComputeProjectionMatrix();
+}
+
 void CameraOrtho::ComputeProjectionMatrix(void)
 {
     this->projection = Eigen::Matrix4f::Identity();

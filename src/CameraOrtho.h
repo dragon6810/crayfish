@@ -9,6 +9,8 @@ private:
 
     void ComputeProjectionMatrix(void) override;
 public:
+    CameraOrtho(void);
+
     Eigen::Vector2f GetDimensions(void);
 
     void SetDimensions(Eigen::Vector2f dimensions);

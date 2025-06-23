@@ -2,8 +2,8 @@
 
 Camera::Camera(void)
 {
-    this->ComputeViewMatrix();
-    this->ComputeProjectionMatrix();
+    ComputeViewMatrix();
+    ComputeProjectionMatrix();
 }
 
 void Camera::ComputeViewMatrix(void)
