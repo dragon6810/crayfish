@@ -2,15 +2,41 @@
 
 #include "CameraOrtho.h"
 #include "CameraPerspective.h"
+#include "Config.h"
 #include "RenderFrame.h"
 #include "Scene.h"
 #include "Triangle.h"
 
 int main(int argc, char** argv)
 {
+    int i;
+
+    int nthreads;
+
     RenderFrame frame(1024, 1024, true);
     CameraPerspective camera;
     Scene scene;
+
+    for(i=1; i<argc; i++)
+    {
+        if(!strcmp(argv[i], "-nthreads"))
+        {
+            if(i == argc - 1)
+            {
+                fprintf(stderr, "error: expected argument after \"-nthreads\"\n");
+                continue;
+            }
+
+            nthreads = atoi(argv[++i]);
+            if(!nthreads)
+            {
+                fprintf(stderr, "error: expected non-zero thread count after \"-nthreads\"\n");
+                continue;
+            }
+
+            Config::nthreads = nthreads;
+        }
+    }
 
     scene.SetRenderTarget(frame);
     scene.models.push_back(Model::LoadOBJ("teapot.obj"));

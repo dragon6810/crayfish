@@ -2,6 +2,7 @@
 
 #include <thread>
 
+#include "Config.h"
 #include "Random.h"
 #include "Triangle.h"
 
@@ -247,8 +248,6 @@ void Model::SetScale(Eigen::Vector3f scale)
     this->ComputeTransform();
 }
 
-const int nthreads = 8;
-
 void Model::Render(const Camera* camera, RenderFrame* rendertarget)
 {
     int i, t;
@@ -267,9 +266,9 @@ void Model::Render(const Camera* camera, RenderFrame* rendertarget)
     }
 
     ntris = this->indices.size() / 3;
-    threadtris = (ntris + nthreads - 1) / nthreads;
+    threadtris = (ntris + Config::nthreads - 1) / Config::nthreads;
 
-    for(t=0; t<nthreads; t++)
+    for(t=0; t<Config::nthreads; t++)
     {
         start = t * threadtris;
         end = start + threadtris;
@@ -279,13 +278,11 @@ void Model::Render(const Camera* camera, RenderFrame* rendertarget)
         if(start >= end)
             break;
 
-        threads.emplace_back([this, camera, rendertarget, start, end, t]()
+        threads.emplace_back([this, camera, rendertarget, start, end]()
         {
             int i, j;
 
             int v[3];
-
-            printf("thread %llu rendering tris %llu-%llu\n", t, start, end);
 
             for(i=start; i<end; i++)
             {
@@ -293,13 +290,9 @@ void Model::Render(const Camera* camera, RenderFrame* rendertarget)
                     v[j] = this->indices[i * 3 + j];
                 this->DrawModelTri(v[0], v[1], v[2], camera, rendertarget, Random::UInt(i) | 0xFF000000);
             }
-
-            printf("thread %llu done\n", t);
         });
     }
 
-    for(t=0; t<nthreads; t++)
+    for(t=0; t<threads.size(); t++)
         threads[t].join();
-
-    printf("model done\n");
 }

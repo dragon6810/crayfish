@@ -4,7 +4,7 @@ cd build
 if make; then
 	mkdir -p ../run
 	cd ../run
-	../build/Crayfish
+	../build/Crayfish -nthreads 8
 else
 	exit 1
 fi
