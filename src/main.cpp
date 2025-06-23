@@ -16,6 +16,7 @@ int main(int argc, char** argv)
     RenderFrame frame(1024, 1024, true);
     CameraPerspective camera;
     Scene scene;
+    Model dragon;
 
     for(i=1; i<argc; i++)
     {
@@ -46,6 +47,10 @@ int main(int argc, char** argv)
     scene.models.push_back(Model::LoadOBJ("bunny.obj"));
     scene.models[1].SetScale(Eigen::Vector3f(32.0, 32.0, 32.0));
     scene.models[1].SetPosition(Eigen::Vector3f(-0.75, -3.0, 0.0));
+    dragon = Model::LoadOBJ("dragon.obj");
+    dragon.SetScale(Eigen::Vector3f(8.0, 8.0, 8.0));
+    dragon.SetRotation(Eigen::Quaternionf(Eigen::AngleAxisf(M_PI / 2.0, Eigen::Vector3f::UnitY())));
+    //scene.models.push_back(dragon);
     //camera.SetDimensions(Eigen::Vector2f(8, 8));
     camera.SetPosition(Eigen::Vector3f(0, 0, 8));
 
