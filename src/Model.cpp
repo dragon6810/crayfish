@@ -8,15 +8,25 @@ void Model::ComputeTransform(void)
     int i, j;
 
     Eigen::Matrix3f rotate;
+    Eigen::Matrix4f rotate4, scale, translate;
 
     this->transform = Eigen::Matrix4f::Identity();
 
     rotate = this->rotation.toRotationMatrix();
+    rotate4 = Eigen::Matrix4f::Identity();
     for(i=0; i<3; i++)
         for(j=0; j<3; j++)
-            this->transform(i, j) = rotate(i, j) * this->scale[j];
+            rotate4(i, j) = rotate(i, j);
+    
+    scale = Eigen::Matrix4f::Identity();
     for(i=0; i<3; i++)
-        this->transform(i, 3) = this->position[i];
+        scale(i, i) = this->scale[i];
+
+    translate = Eigen::Matrix4f::Identity();
+    for(i=0; i<3; i++)
+        translate(i, 3) = this->position[i];
+
+    this->transform = translate * rotate4 * scale;
 }
 
 void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFrame* rendertarget, uint32_t color)

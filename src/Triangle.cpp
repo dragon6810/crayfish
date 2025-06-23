@@ -138,15 +138,12 @@ void Triangle::Draw(void)
 
             v = Eigen::Vector2f(x, y);
             depth = TriangleLerp(v, depths, screentri);
+            depth = depth / 2.0 + 0.5;
             if(depth > this->rendertarget->depths[p])
                 continue;
 
             this->rendertarget->depths[p] = depth;
 
-            depth = depth / 2.0 + 0.5;
-            depth *= 60;
-            if(depth > 1)
-                depth = 1;
             this->rendertarget->pixels[p] = this->color;
             #if 0
             this->rendertarget->pixels[p] = 0xFF000000;
