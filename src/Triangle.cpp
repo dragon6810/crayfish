@@ -105,7 +105,7 @@ void Triangle::Draw(void)
     {
         screentri[i].x() = ( this->points[i].x() / 2.0 + 0.5) * this->rendertarget->size[0];
         screentri[i].y() = (-this->points[i].y() / 2.0 + 0.5) * this->rendertarget->size[1];
-        depths[i] = this->points[i][2];
+        depths[i] = 1.0 / this->points[i][2];
         if(screentri[i].x() < mins[0] || !i)
             mins[0] = screentri[i].x();
         if(screentri[i].y() < mins[1] || !i)
@@ -137,7 +137,7 @@ void Triangle::Draw(void)
             p = this->rendertarget->size[0] * y + x;
 
             v = Eigen::Vector2f(x, y);
-            depth = TriangleLerp(v, depths, screentri);
+            depth = 1.0 / TriangleLerp(v, depths, screentri);
             depth = depth / 2.0 + 0.5;
             if(depth > this->rendertarget->depths[p])
                 continue;

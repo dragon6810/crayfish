@@ -8,7 +8,7 @@
 
 int main(int argc, char** argv)
 {
-    RenderFrame frame(256, 256, true);
+    RenderFrame frame(1024, 1024, true);
     CameraPerspective camera;
     Scene scene;
 
