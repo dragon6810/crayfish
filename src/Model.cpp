@@ -45,11 +45,13 @@ void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rend
     Triangle tri(*rendertarget);
 
     for(i=0; i<3; i++)
+        mdlpoints[i][3] = 1.0;
+        
+    for(i=0; i<3; i++)
     {
         mdlpoints[0][i] = this->points[indices[0]].pos[i];
         mdlpoints[1][i] = this->points[indices[1]].pos[i];
         mdlpoints[2][i] = this->points[indices[2]].pos[i];
-        mdlpoints[i][3] = 1.0;
     }
 
     for(i=0; i<3; i++)
@@ -70,32 +72,6 @@ void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rend
 
     for(i=0; i<3; i++)
     {
-        a[i] = worldpoints[1][i] - worldpoints[0][i];
-        b[i] = worldpoints[2][i] - worldpoints[0][i];
-    }
-    normal = b.cross(a).normalized();
-    light = normal.dot(Eigen::Vector3f(0, 1, 0)) / 2.0 + 0.5;
-    if(light > 1)
-        light = 1;
-    vcolor[0] = (float) ((color & 0x00FF0000) >> 16) / 255.0;
-    vcolor[1] = (float) ((color & 0x0000FF00) >>  8) / 255.0;
-    vcolor[2] = (float) ((color & 0x000000FF) >>  0) / 255.0;
-    //vcolor *= light;
-    #if 0
-    for(i=0; i<3; i++)
-    {
-        vcolor[i] = normal[i];
-        if(vcolor[i] < 0)
-            vcolor[i] = 0;
-    }
-    #endif
-    color = 0xFF000000;
-    color |= ((uint32_t) (vcolor[0] * 255.0)) << 16;
-    color |= ((uint32_t) (vcolor[1] * 255.0)) <<  8;
-    color |= ((uint32_t) (vcolor[2] * 255.0)) <<  0;
-
-    for(i=0; i<3; i++)
-    {
         tri[i] = screenpoints[i];
         normal4[3] = 0; // to not to translation
         for(j=0; j<3; j++)
@@ -103,9 +79,10 @@ void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rend
             normal4[j] = this->points[indices[i]].normal[j];
             tri.world[i][j] = worldpoints[i][j];
         }
-        normal4 = this->transform * normal4;
+        //normal4 = this->transform * normal4;
         for(j=0; j<3; j++)
             tri.normals[i][j] = normal4[j];
+        tri.normals[i] = this->points[indices[i]].normal;
     }
     tri.SetColor(color);
     tri.Draw(this->material->GetFragmentShader());
@@ -166,13 +143,13 @@ Model Model::PrimitiveCube(void)
 Model Model::LoadOBJ(const char* path)
 {
     int i, j;
-    std::set<uint64_t>::iterator it;
+    std::vector<uint64_t>::iterator it;
 
     char mode;
     Vertex v;
     Model m;
     uint64_t f[3];
-    std::set<uint64_t> needsnormals;
+    std::vector<uint64_t> needsnormals;
     Eigen::Vector3f n, a, b, fn;
     uint64_t tri[3];
 
@@ -224,9 +201,9 @@ Model Model::LoadOBJ(const char* path)
             m.indices.push_back(f[2] - 1);
             m.indices.push_back(f[1] - 1);
             m.indices.push_back(f[0] - 1);
-            needsnormals.emplace(f[2] - 1);
-            needsnormals.emplace(f[1] - 1);
-            needsnormals.emplace(f[0] - 1);
+            needsnormals.push_back(f[2] - 1);
+            needsnormals.push_back(f[1] - 1);
+            needsnormals.push_back(f[0] - 1);
             break;
         default:
             fprintf(stderr, "error in obj \"%s\": expected vertex or face definition.\n", path);
@@ -240,15 +217,17 @@ Model Model::LoadOBJ(const char* path)
 
     for(it=needsnormals.begin(); it!=needsnormals.end(); it++)
     {
+        if(m.points[*it].normal != Eigen::Vector3f::Zero())
+            continue;
+
         n = Eigen::Vector3f::Zero();
         for(i=0; i<m.points[*it].faces.size(); i++)
         {
-            tri[0] = m.indices[m.points[*it].faces[i] * 3 + 0];
-            tri[1] = m.indices[m.points[*it].faces[i] * 3 + 1];
-            tri[2] = m.indices[m.points[*it].faces[i] * 3 + 2];
-            a = m.points[tri[1]].pos - m.points[tri[0]].pos;
-            b = m.points[tri[2]].pos - m.points[tri[0]].pos;
-            fn = b.cross(a).normalized();
+            for(j=0; j<3; j++)
+                tri[j] = m.indices[m.points[*it].faces[i] * 3 + j];
+            a = (m.points[tri[1]].pos - m.points[tri[0]].pos).normalized();
+            b = (m.points[tri[2]].pos - m.points[tri[0]].pos).normalized();
+            fn = a.cross(b);
             n += fn;
         }
         n.normalize();

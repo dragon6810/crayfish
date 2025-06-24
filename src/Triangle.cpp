@@ -88,7 +88,7 @@ void Triangle::SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 
 void Triangle::Draw(ShaderFragment* frag)
 {
-    int i, x, y, p;
+    int i, j, x, y, p;
 
     int mins[2], maxs[2];
     Eigen::Vector2f screentri[3];
@@ -105,50 +105,48 @@ void Triangle::Draw(ShaderFragment* frag)
 
     for(i=0; i<3; i++)
     {
-        screentri[i].x() = ( this->points[i].x() / 2.0 + 0.5) * this->rendertarget->size[0];
-        screentri[i].y() = (-this->points[i].y() / 2.0 + 0.5) * this->rendertarget->size[1];
+        screentri[i][0] = ( this->points[i].x() / 2.0 + 0.5) * this->rendertarget->size[0];
+        screentri[i][1] = (-this->points[i].y() / 2.0 + 0.5) * this->rendertarget->size[1];
 
         ws[i] = 1.0 / this->points[i][3];
         depths[i] = this->points[i][2] * ws[i];
 
-        if(screentri[i].x() < mins[0] || !i)
-            mins[0] = screentri[i].x();
-        if(screentri[i].y() < mins[1] || !i)
-            mins[1] = screentri[i].y();
-        if(screentri[i].x() > maxs[0] || !i)
-            maxs[0] = screentri[i].x();
-        if(screentri[i].y() > maxs[1] || !i)
-            maxs[1] = screentri[i].y();
+        for(j=0; j<2; j++)
+        {
+            if(screentri[i][j] < mins[j] || !i)
+                mins[j] = screentri[i][j];
+            if(screentri[i][j] > maxs[j] || !i)
+                maxs[j] = screentri[i][j];
+        }
     }
 
-    //printf("(%d, %d), (%d %d)\n", mins[0], mins[1], maxs[0], maxs[1]);
-
-    if(mins[0] < 0)
-        mins[0] = 0;
-    if(mins[1] < 0)
-        mins[1] = 0;
-    if(maxs[0] > this->rendertarget->size[0] - 1)
-        maxs[0] = this->rendertarget->size[0] - 1;
-    if(maxs[1] > this->rendertarget->size[1] - 1)
-        maxs[1] = this->rendertarget->size[1] - 1;
+    for(i=0; i<2; i++)
+    {
+        if(mins[i] < 0)
+            mins[i] = 0;
+        if(maxs[i] > this->rendertarget->size[i] - 1)
+            maxs[i] = this->rendertarget->size[i] - 1;
+    }
 
     for(y=mins[1]; y<=maxs[1]; y++)
     {
-        for(x=mins[0]; x<=maxs[0]; x++)
+        p = this->rendertarget->size[0] * y + mins[0];
+        for(x=mins[0]; x<=maxs[0]; x++, p++)
         {
             if(!this->PointInTriangle(Eigen::Vector2f(x, y), screentri))
                 continue;
 
-            p = this->rendertarget->size[0] * y + x;
-
             v = Eigen::Vector2f(x, y);
+
             barycentric = GetBarycentric(v, screentri);
-            depth = barycentric.dot(depths) / barycentric.dot(ws);
+            
+            // interpolation
             w = 1.0 / barycentric.dot(ws);
-            screenpos[2] = depth;
-            depth = depth / 2.0 + 0.5;
+            depth = barycentric.dot(depths) * w;
+
             screenpos[0] = v[0] / this->rendertarget->size[0] * 2.0 - 1.0;
             screenpos[1] = -(v[1] / this->rendertarget->size[1] * 2.0 - 1.0);
+            screenpos[2] = depth;
             screenpos[3] = w;
 
             normal = world = Eigen::Vector3f::Zero();
@@ -157,9 +155,9 @@ void Triangle::Draw(ShaderFragment* frag)
                 normal += this->normals[i] * ws[i] * barycentric[i];
                 world += this->world[i] * ws[i] * barycentric[i];
             }
-
-            normal /= w;
             world /= w;
+
+            depth = depth / 2.0 + 0.5;
 
             this->rendertarget->locks[p]->lock();
             if(depth > this->rendertarget->depths[p])
