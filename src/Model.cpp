@@ -123,13 +123,32 @@ Model Model::PrimitiveCube(void)
 
 Model Model::LoadOBJ(const char* path)
 {
+    struct verthash 
+    {
+        std::size_t operator()(const std::tuple<int64_t, int64_t, int64_t>& t) const noexcept 
+        {
+            std::size_t h1 = std::hash<int64_t>{}(std::get<0>(t));
+            std::size_t h2 = std::hash<int64_t>{}(std::get<1>(t));
+            std::size_t h3 = std::hash<int64_t>{}(std::get<2>(t));
+
+            std::size_t combined = h1;
+            combined ^= h2 + 0x9e3779b9 + (combined << 6) + (combined >> 2);
+            combined ^= h3 + 0x9e3779b9 + (combined << 6) + (combined >> 2);
+            return combined;
+        }
+    };
+
     int iv, i, j;
 
     char mode;
     Vertex v;
     Model m;
-    uint64_t f[3];
-    Eigen::Vector3f n, a, b, fn;
+    std::tuple<int64_t, int64_t, int64_t> f[3];
+    Eigen::Vector3f pos, n, a, b, fn;
+    std::vector<Eigen::Vector3f> positions;
+    std::vector<Eigen::Vector3f> normals;
+    std::vector<Eigen::Vector2f> texcoords;
+    std::unordered_map<std::tuple<int64_t, int64_t, int64_t>, int64_t, verthash> uniqueverts;
     uint64_t tri[3];
 
     FILE *ptr;
@@ -160,23 +179,92 @@ Model Model::LoadOBJ(const char* path)
         switch(mode)
         {
         case 'v':
-            v = Vertex();
-            if(fscanf(ptr, " %f %f %f", &v.pos[0], &v.pos[1], &v.pos[2]) != 3)
+            if(fscanf(ptr, " %f %f %f", &pos[0], &pos[1], &pos[2]) != 3)
             {
                 fprintf(stderr, "error in obj \"%s\": expected vertex definition.\n", path);
                 break;
             }
-            m.points.push_back(v);
+            positions.push_back(pos);
             break;
         case 'f':
-            if(fscanf(ptr, " %llu %llu %llu", &f[0], &f[1], &f[2]) == 3)
+            for(i=0; i<3; i++)
             {
-                m.points[f[2] - 1].faces.push_back(m.indices.size() / 3);
-                m.points[f[1] - 1].faces.push_back(m.indices.size() / 3);
-                m.points[f[0] - 1].faces.push_back(m.indices.size() / 3);
-                m.indices.push_back(f[2] - 1);
-                m.indices.push_back(f[1] - 1);
-                m.indices.push_back(f[0] - 1);
+                std::get<0>(f[i]) = 0;
+                std::get<1>(f[i]) = 0;
+                std::get<2>(f[i]) = 0;
+            }
+
+            if
+            (
+                fscanf
+                (
+                    ptr, " %llu %llu %llu", 
+                    &std::get<0>(f[0]), 
+                    &std::get<0>(f[1]), 
+                    &std::get<0>(f[2])
+                ) == 3 ||
+                fscanf
+                (
+                    ptr, " %llu/%llu %llu/%llu %llu/%llu", 
+                    &std::get<0>(f[0]), &std::get<1>(f[0]), 
+                    &std::get<0>(f[1]), &std::get<1>(f[1]), 
+                    &std::get<0>(f[2]), &std::get<1>(f[2])
+                ) == 6 ||
+                fscanf
+                (
+                    ptr, " %llu/%llu/%llu %llu/%llu/%llu %llu/%llu/%llu", 
+                    &std::get<0>(f[0]), &std::get<1>(f[0]), 
+                    &std::get<0>(f[1]), &std::get<1>(f[1]), 
+                    &std::get<0>(f[2]), &std::get<1>(f[2])
+                ) == 9
+            )
+            {
+                for(i=0; i<3; i++)
+                {
+                    std::get<0>(f[i])--;
+                    std::get<1>(f[i])--;
+                    std::get<2>(f[i])--;
+                    
+                    if(uniqueverts.find(f[i]) != uniqueverts.end())
+                    {
+                        tri[i] = uniqueverts.at(f[i]);
+                        continue;
+                    }
+
+                    // need to make this vert
+                    v = Vertex();
+                    if(std::get<0>(f[i]) >= 0)
+                    {
+                        if(std::get<0>(f[i]) >= positions.size())
+                            fprintf(stderr, "error: vertex position index out of bounds in obj file \"%s\"\n", path);
+                        else
+                            v.pos = positions[std::get<0>(f[i])];
+                    }
+                    if(std::get<1>(f[i]) >= 0)
+                    {
+                        if(std::get<1>(f[i]) >= texcoords.size())
+                            fprintf(stderr, "error: vertex texcoord index out of bounds in obj file \"%s\"\n", path);
+                        else
+                            v.tex = texcoords[std::get<1>(f[i])];
+                    }
+                    if(std::get<2>(f[i]) >= 0)
+                    {
+                        if(std::get<2>(f[i]) >= normals.size())
+                            fprintf(stderr, "error: vertex normal index out of bounds in obj file \"%s\"\n", path);
+                        else
+                            v.normal = normals[std::get<2>(f[i])];
+                    }
+
+                    tri[i] = m.points.size();
+                    uniqueverts.emplace(f[i], tri[i]);
+                    m.points.push_back(v);
+                }
+                m.points[tri[2]].faces.push_back(m.indices.size() / 3);
+                m.points[tri[1]].faces.push_back(m.indices.size() / 3);
+                m.points[tri[0]].faces.push_back(m.indices.size() / 3);
+                m.indices.push_back(tri[2]);
+                m.indices.push_back(tri[1]);
+                m.indices.push_back(tri[0]);
                 
                 break;
             }
