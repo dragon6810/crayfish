@@ -4,11 +4,13 @@
 #include <stdint.h>
 #include <vector>
 
+#include <Eigen/Dense>
+
 class RenderFrame
 {
 public:
     uint64_t size[2];
-    std::vector<uint32_t> pixels;
+    std::vector<Eigen::Vector4f> pixels;
     std::vector<float> depths;
     std::vector<std::unique_ptr<std::mutex>> locks;
 

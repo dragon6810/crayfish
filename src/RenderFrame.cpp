@@ -20,6 +20,7 @@ RenderFrame::RenderFrame(uint64_t width, uint64_t height, bool clear)
         memset(this->pixels.data(), 0, width * height * sizeof(this->pixels[0]));
         for(i=0; i<width*height; i++)
         {
+            this->pixels[i] = Eigen::Vector4f::Zero();
             this->depths[i] = 1.0;
             locks[i] = std::make_unique<std::mutex>();
         }
@@ -28,12 +29,33 @@ RenderFrame::RenderFrame(uint64_t width, uint64_t height, bool clear)
 
 void RenderFrame::WritePng(const char* name)
 {
-    int i;
+    int i, j;
 
     png_structp pngptr;
     png_infop infoptr;
     png_bytepp rowptrs;
     FILE *ptr;
+    std::vector<uint32_t> intpixels;
+    Eigen::Vector4f curp;
+
+    intpixels.resize(this->size[0] * this->size[1]);
+    for(i=0; i<this->size[0] * this->size[1]; i++)
+    {
+        curp = this->pixels[i];
+        for(j=0; j<4; j++)
+        {
+            if(curp[j] < 0)
+                curp[j] = 0;
+            if(curp[j] > 1)
+                curp[j] = 1;
+        }
+
+        intpixels[i]  = 0;
+        intpixels[i] |= ((uint32_t) (curp[0] * 255.0)) << 24;
+        intpixels[i] |= ((uint32_t) (curp[1] * 255.0)) << 16;
+        intpixels[i] |= ((uint32_t) (curp[2] * 255.0)) <<  8;
+        intpixels[i] |= ((uint32_t) (curp[3] * 255.0)) <<  0;
+    }
 
     pngptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     assert(pngptr);
@@ -54,7 +76,7 @@ void RenderFrame::WritePng(const char* name)
     for (i=0; i<this->size[1]; i++) 
     {
         rowptrs[i] = (png_bytep) malloc(sizeof(png_byte) * this->size[0] * 4);
-        memcpy(rowptrs[i], this->pixels.data() + i * this->size[0], sizeof(this->pixels[0]) * this->size[0]);
+        memcpy(rowptrs[i], intpixels.data() + i * this->size[0], sizeof(intpixels[0]) * this->size[0]);
     }
 
     png_write_image(pngptr, rowptrs);

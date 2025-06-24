@@ -154,9 +154,12 @@ void Triangle::Draw(ShaderFragment* frag)
             normal = world = Eigen::Vector3f::Zero();
             for(i=0; i<3; i++)
             {
-                normal += this->normals[i] * barycentric[i];
-                world += this->world[i] * barycentric[i];
+                normal += this->normals[i] * ws[i] * barycentric[i];
+                world += this->world[i] * ws[i] * barycentric[i];
             }
+
+            normal /= w;
+            world /= w;
 
             this->rendertarget->locks[p]->lock();
             if(depth > this->rendertarget->depths[p])
@@ -170,10 +173,7 @@ void Triangle::Draw(ShaderFragment* frag)
                 col = frag->Fragment(screenpos, world, Eigen::Vector3f::Zero(), normal);
             else
                 col = Eigen::Vector3f(1.0, 0.0, 1.0);
-            this->rendertarget->pixels[p] = 0xFF000000;
-            this->rendertarget->pixels[p] |= ((uint32_t) (col[0] * 255.0)) << 16;
-            this->rendertarget->pixels[p] |= ((uint32_t) (col[1] * 255.0)) <<  8;
-            this->rendertarget->pixels[p] |= ((uint32_t) (col[2] * 255.0)) <<  0;
+            this->rendertarget->pixels[p] = Eigen::Vector4f(1.0, col[0], col[1], col[2]);
 
             this->rendertarget->locks[p]->unlock();
         }

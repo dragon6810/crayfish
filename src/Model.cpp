@@ -248,10 +248,9 @@ Model Model::LoadOBJ(const char* path)
             tri[2] = m.indices[m.points[*it].faces[i] * 3 + 2];
             a = m.points[tri[1]].pos - m.points[tri[0]].pos;
             b = m.points[tri[2]].pos - m.points[tri[0]].pos;
-            fn = a.cross(b).normalized();
+            fn = b.cross(a).normalized();
             n += fn;
         }
-        n /= m.points[*it].faces.size();
         n.normalize();
         m.points[*it].normal = n;
     }
