@@ -1,5 +1,6 @@
 #include "Model.h"
 
+#include <set>
 #include <thread>
 
 #include "Config.h"
@@ -32,7 +33,7 @@ void Model::ComputeTransform(void)
     this->transform = translate * rotate4 * scale;
 }
 
-void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFrame* rendertarget, uint32_t color)
+void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rendertarget, uint32_t color)
 {
     int i, j;
 
@@ -40,13 +41,14 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
     Eigen::Vector3f vcolor;
     Eigen::Vector3f a, b, normal;
     Eigen::Vector4f mdlpoints[3], worldpoints[3], viewpoints[3], screenpoints[3];
+    Eigen::Vector4f normal4;
     Triangle tri(*rendertarget);
 
     for(i=0; i<3; i++)
     {
-        mdlpoints[0][i] = this->points[p1].pos[i];
-        mdlpoints[1][i] = this->points[p2].pos[i];
-        mdlpoints[2][i] = this->points[p3].pos[i];
+        mdlpoints[0][i] = this->points[indices[0]].pos[i];
+        mdlpoints[1][i] = this->points[indices[1]].pos[i];
+        mdlpoints[2][i] = this->points[indices[2]].pos[i];
         mdlpoints[i][3] = 1.0;
     }
 
@@ -78,7 +80,7 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
     vcolor[0] = (float) ((color & 0x00FF0000) >> 16) / 255.0;
     vcolor[1] = (float) ((color & 0x0000FF00) >>  8) / 255.0;
     vcolor[2] = (float) ((color & 0x000000FF) >>  0) / 255.0;
-    vcolor *= light;
+    //vcolor *= light;
     #if 0
     for(i=0; i<3; i++)
     {
@@ -93,9 +95,17 @@ void Model::DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFra
     color |= ((uint32_t) (vcolor[2] * 255.0)) <<  0;
 
     for(i=0; i<3; i++)
+    {
         tri[i] = screenpoints[i];
+        normal4[3] = 0; // to not to translation
+        for(j=0; j<3; j++)
+            normal4[j] = this->points[indices[i]].normal[j];
+        normal4 = this->transform * normal4;
+        for(j=0; j<3; j++)
+            tri.normals[i][j] = normal4[j];
+    }
     tri.SetColor(color);
-    tri.Draw();
+    tri.Draw(this->material->GetFragmentShader());
 }
 
 Model::Model(void)
@@ -152,10 +162,16 @@ Model Model::PrimitiveCube(void)
 
 Model Model::LoadOBJ(const char* path)
 {
+    int i, j;
+    std::set<uint64_t>::iterator it;
+
     char mode;
     Vertex v;
     Model m;
     uint64_t f[3];
+    std::set<uint64_t> needsnormals;
+    Eigen::Vector3f n, a, b, fn;
+    uint64_t tri[3];
 
     FILE *ptr;
 
@@ -199,9 +215,15 @@ Model Model::LoadOBJ(const char* path)
                 fprintf(stderr, "error in obj \"%s\": expected face definition.\n", path);
                 break;
             }
+            m.points[f[2] - 1].faces.push_back(m.indices.size() / 3);
+            m.points[f[1] - 1].faces.push_back(m.indices.size() / 3);
+            m.points[f[0] - 1].faces.push_back(m.indices.size() / 3);
             m.indices.push_back(f[2] - 1);
             m.indices.push_back(f[1] - 1);
             m.indices.push_back(f[0] - 1);
+            needsnormals.emplace(f[2] - 1);
+            needsnormals.emplace(f[1] - 1);
+            needsnormals.emplace(f[0] - 1);
             break;
         default:
             fprintf(stderr, "error in obj \"%s\": expected vertex or face definition.\n", path);
@@ -212,6 +234,25 @@ Model Model::LoadOBJ(const char* path)
     }
 
     fclose(ptr);
+
+    for(it=needsnormals.begin(); it!=needsnormals.end(); it++)
+    {
+        n = Eigen::Vector3f::Zero();
+        for(i=0; i<m.points[*it].faces.size(); i++)
+        {
+            tri[0] = m.indices[m.points[*it].faces[i] * 3 + 0];
+            tri[1] = m.indices[m.points[*it].faces[i] * 3 + 1];
+            tri[2] = m.indices[m.points[*it].faces[i] * 3 + 2];
+            a = m.points[tri[1]].pos - m.points[tri[0]].pos;
+            b = m.points[tri[2]].pos - m.points[tri[0]].pos;
+            fn = a.cross(b).normalized();
+            n += fn;
+        }
+        n /= m.points[*it].faces.size();
+        n.normalize();
+        m.points[*it].normal = n;
+    }
+
     return m;
 }
 
@@ -288,7 +329,7 @@ void Model::Render(const Camera* camera, RenderFrame* rendertarget)
             {
                 for(j=0; j<3; j++)
                     v[j] = this->indices[i * 3 + j];
-                this->DrawModelTri(v[0], v[1], v[2], camera, rendertarget, Random::UInt(i) | 0xFF000000);
+                this->DrawModelTri(v, camera, rendertarget, Random::UInt(i) | 0xFF000000);
             }
         });
     }

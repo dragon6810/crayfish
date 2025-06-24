@@ -11,6 +11,7 @@ private:
 public:
     std::vector<Model> models;
     std::unique_ptr<Camera> camera;
+    std::vector<std::shared_ptr<Material>> materials;
 
     void SetRenderTarget(RenderFrame& rendertarget);
 

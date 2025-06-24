@@ -1,8 +1,9 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include <memory>
 
 #include "Camera.h"
+#include "Material.h"
 #include "RenderFrame.h"
 #include "Vertex.h"
 
@@ -16,10 +17,12 @@ private:
     Eigen::Matrix4f transform;
 
     void ComputeTransform(void);
-    void DrawModelTri(int p1, int p2, int p3, const Camera* camera, RenderFrame* rendertarget, uint32_t color=0xFFFFFFFF);
+    void DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rendertarget, uint32_t color=0xFFFFFFFF);
 public:
     std::vector<Vertex> points;
     std::vector<uint64_t> indices;
+    
+    std::shared_ptr<Material> material = std::make_shared<Material>();
 
     Model(void);
 

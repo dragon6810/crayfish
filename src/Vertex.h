@@ -8,4 +8,5 @@ public:
     Eigen::Vector3f pos;
     Eigen::Vector3f normal;
     Eigen::Vector3f tex;
+    std::vector<uint32_t> faces;
 };

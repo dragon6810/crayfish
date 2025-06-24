@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 
 #include "RenderFrame.h"
+#include "ShaderFragment.h"
 
 class Triangle
 {
@@ -17,16 +18,17 @@ public:
     Triangle(RenderFrame& rendertarget);
 
     float depths[3];
+    Eigen::Vector3f normals[3];
 
     static float TriangleArea(Eigen::Vector2f tri[3]);
-    static float TriangleLerp(Eigen::Vector2f p, float vals[3], Eigen::Vector2f tri[3]);
+    static Eigen::Vector3f GetBarycentric(Eigen::Vector2f p, Eigen::Vector2f tri[3]);
     static bool PointInTriangle(Eigen::Vector2f p, Eigen::Vector2f tri[3]);
 
     void SetRenderTarget(RenderFrame& rendertarget);
     void SetColor(uint32_t color);
     void SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
-    void Draw(void);
+    void Draw(ShaderFragment* frag);
 
     Eigen::Vector4f& operator[](int i);
 };

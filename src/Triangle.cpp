@@ -27,12 +27,12 @@ float Triangle::TriangleArea(Eigen::Vector2f tri[3])
     );
 }
 
-float Triangle::TriangleLerp(Eigen::Vector2f p, float vals[3], Eigen::Vector2f tri[3])
+Eigen::Vector3f Triangle::GetBarycentric(Eigen::Vector2f p, Eigen::Vector2f tri[3])
 {
     int i;
 
     float area;
-    float barycentric[3];
+    Eigen::Vector3f barycentric;
     Eigen::Vector2f curtri[3];
 
     area = TriangleArea(tri);
@@ -44,7 +44,7 @@ float Triangle::TriangleLerp(Eigen::Vector2f p, float vals[3], Eigen::Vector2f t
         barycentric[i] = TriangleArea(curtri) / area;
     }
 
-    return vals[0] * barycentric[0] + vals[1] * barycentric[1] + vals[2] * barycentric[2];
+    return barycentric;
 }
 
 bool Triangle::PointInTriangle(Eigen::Vector2f p, Eigen::Vector2f tri[3])
@@ -86,14 +86,15 @@ void Triangle::SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     this->color |= ((uint32_t) a) <<  0;
 }
 
-void Triangle::Draw(void)
+void Triangle::Draw(ShaderFragment* frag)
 {
     int i, x, y, p;
 
     int mins[2], maxs[2];
     Eigen::Vector2f screentri[3];
     Eigen::Vector2f v;
-    float depths[3], depth;
+    Eigen::Vector3f barycentric, depths;
+    float depth;
 
     if(!this->rendertarget)
     {
@@ -137,7 +138,8 @@ void Triangle::Draw(void)
             p = this->rendertarget->size[0] * y + x;
 
             v = Eigen::Vector2f(x, y);
-            depth = 1.0 / TriangleLerp(v, depths, screentri);
+            barycentric = GetBarycentric(v, screentri);
+            depth = 1.0 / barycentric.dot(depths);
             depth = depth / 2.0 + 0.5;
 
             this->rendertarget->locks[p]->lock();
