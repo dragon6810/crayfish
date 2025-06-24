@@ -38,6 +38,7 @@ void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rend
     int i, j;
 
     Eigen::Vector4f mdlpoints[3], normals[3], worldpoints[3], viewpoints[3], screenpoints[3];
+    Eigen::Vector2f screen2[3];
     Triangle tri(*rendertarget);
 
     for(i=0; i<3; i++)
@@ -58,6 +59,9 @@ void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rend
         if(screenpoints[i][2] > 1 || screenpoints[i][2] < -1)
             return;
 
+        screen2[i][0] = screenpoints[i][0];
+        screen2[i][1] = screenpoints[i][1];
+
         tri[i] = screenpoints[i];
         for(j=0; j<3; j++)
         {
@@ -65,6 +69,9 @@ void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rend
             tri.world[i][j] = worldpoints[i][j];
         }
     }
+
+    if(Triangle::TriangleArea(screen2) > 0)
+        return;
 
     tri.Draw(this->material->GetFragmentShader());
 }
@@ -145,6 +152,7 @@ Model Model::LoadOBJ(const char* path)
     Model m;
     std::tuple<int64_t, int64_t, int64_t> f[3];
     Eigen::Vector3f pos, n, a, b, fn;
+    Eigen::Vector2f texcoord;
     std::vector<Eigen::Vector3f> positions;
     std::vector<Eigen::Vector3f> normals;
     std::vector<Eigen::Vector2f> texcoords;
@@ -179,12 +187,39 @@ Model Model::LoadOBJ(const char* path)
         switch(mode)
         {
         case 'v':
-            if(fscanf(ptr, " %f %f %f", &pos[0], &pos[1], &pos[2]) != 3)
+            mode = fgetc(ptr);
+            switch(mode)
             {
-                fprintf(stderr, "error in obj \"%s\": expected vertex definition.\n", path);
+            case 't':
+                if(fscanf(ptr, " %f %f", &texcoord[0], &texcoord[1]) != 2)
+                {
+                    fprintf(stderr, "error in obj \"%s\": expected texcoord definition.\n", path);
+                    break;
+                }
+                texcoords.push_back(texcoord);
+                
+                break;
+            case 'n':
+                if(fscanf(ptr, " %f %f %f", &n[0], &n[1], &n[2]) != 3)
+                {
+                    fprintf(stderr, "error in obj \"%s\": expected normal definition.\n", path);
+                    break;
+                }
+                normals.push_back(n);
+                
+                break;
+            default:
+                fseek(ptr, -1, SEEK_CUR);
+                
+                if(fscanf(ptr, " %f %f %f", &pos[0], &pos[1], &pos[2]) != 3)
+                {
+                    fprintf(stderr, "error in obj \"%s\": expected vertex definition.\n", path);
+                    break;
+                }
+                positions.push_back(pos);
+                
                 break;
             }
-            positions.push_back(pos);
             break;
         case 'f':
             for(i=0; i<3; i++)
@@ -205,18 +240,18 @@ Model Model::LoadOBJ(const char* path)
                 ) == 3 ||
                 fscanf
                 (
-                    ptr, " %llu/%llu %llu/%llu %llu/%llu", 
-                    &std::get<0>(f[0]), &std::get<1>(f[0]), 
+                    ptr, " /%llu %llu/%llu %llu/%llu", 
+                                        &std::get<1>(f[0]), 
                     &std::get<0>(f[1]), &std::get<1>(f[1]), 
                     &std::get<0>(f[2]), &std::get<1>(f[2])
-                ) == 6 ||
+                ) == 5 ||
                 fscanf
                 (
-                    ptr, " %llu/%llu/%llu %llu/%llu/%llu %llu/%llu/%llu", 
-                    &std::get<0>(f[0]), &std::get<1>(f[0]), 
-                    &std::get<0>(f[1]), &std::get<1>(f[1]), 
-                    &std::get<0>(f[2]), &std::get<1>(f[2])
-                ) == 9
+                    ptr, " /%llu %llu/%llu/%llu %llu/%llu/%llu", 
+                                                            &std::get<2>(f[0]), 
+                    &std::get<0>(f[1]), &std::get<1>(f[1]), &std::get<2>(f[1]),
+                    &std::get<0>(f[2]), &std::get<1>(f[2]), &std::get<2>(f[2])
+                ) == 7
             )
             {
                 for(i=0; i<3; i++)
@@ -273,7 +308,6 @@ Model Model::LoadOBJ(const char* path)
             break;
         default:
             fprintf(stderr, "error in obj \"%s\": expected vertex or face definition.\n", path);
-            //printf("mode is %c\n", mode);
             while(mode != '\n' && mode != -1)
                 mode = fgetc(ptr);
         }

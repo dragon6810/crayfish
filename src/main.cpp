@@ -17,7 +17,7 @@ int main(int argc, char** argv)
     RenderFrame frame(1024, 1024, true);
     CameraPerspective camera;
     Scene scene;
-    Model teapot, bunny;
+    Model teapot, bunny, cake;
     MaterialLit mat;
     std::shared_ptr<Material> matptr;
 
@@ -61,6 +61,10 @@ int main(int argc, char** argv)
     bunny.SetPosition(Eigen::Vector3f(-0.75, -3.0, 0.0));
     bunny.material = matptr;
     scene.models.push_back(bunny);
+    
+    cake = Model::LoadOBJ("cake.obj");
+    cake.material = matptr;
+    //scene.models.push_back(cake);
     
     camera.SetPosition(Eigen::Vector3f(0, 0, 8));
 

@@ -19,7 +19,7 @@ Triangle::Triangle(RenderFrame& rendertarget)
 
 float Triangle::TriangleArea(Eigen::Vector2f tri[3])
 {
-    return 0.5f * std::abs
+    return 0.5f *
     (
         tri[0][0] * (tri[1][1] - tri[2][1]) +
         tri[1][0] * (tri[2][1] - tri[0][1]) +
