@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 
     int nthreads;
 
-    RenderFrame frame(1024, 1024, true);
+    RenderFrame frame(128, 128, true);
     CameraPerspective camera;
     Scene scene;
     Model teapot, bunny, cake;
@@ -54,17 +54,19 @@ int main(int argc, char** argv)
     teapot.SetPosition(Eigen::Vector3f(1.0, -2.0, 2.0));
     teapot.SetRotation(Eigen::Quaternionf(Eigen::AngleAxisf(-M_PI / 4.0, Eigen::Vector3f::UnitY())));
     teapot.material = matptr;
-    scene.models.push_back(teapot);
+    //scene.models.push_back(teapot);
 
     bunny = Model::LoadOBJ("bunny.obj");
     bunny.SetScale(Eigen::Vector3f(32.0, 32.0, 32.0));
     bunny.SetPosition(Eigen::Vector3f(-0.75, -3.0, 0.0));
     bunny.material = matptr;
-    scene.models.push_back(bunny);
+    //scene.models.push_back(bunny);
     
     cake = Model::LoadOBJ("cake.obj");
+    cake.SetScale(0.15 * Eigen::Vector3f::Ones());
+    cake.SetPosition(Eigen::Vector3f(0.0, -2.0, 0.0));
     cake.material = matptr;
-    //scene.models.push_back(cake);
+    scene.models.push_back(cake);
     
     camera.SetPosition(Eigen::Vector3f(0, 0, 8));
 
