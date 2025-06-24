@@ -45,7 +45,8 @@ int main(int argc, char** argv)
     scene.SetRenderTarget(frame);
 
     mat = MaterialLit();
-    matptr = std::make_shared<Material>(mat);
+    matptr = std::make_shared<MaterialLit>(mat);
+    assert(matptr->GetFragmentShader());
     scene.materials.push_back(matptr);
 
     teapot = Model::LoadOBJ("teapot.obj");

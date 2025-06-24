@@ -18,6 +18,7 @@ public:
     Triangle(RenderFrame& rendertarget);
 
     float depths[3];
+    Eigen::Vector3f world[3];
     Eigen::Vector3f normals[3];
 
     static float TriangleArea(Eigen::Vector2f tri[3]);

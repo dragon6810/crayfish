@@ -6,7 +6,7 @@
 class MaterialLit : public Material
 {
 private:
-    ShaderFragmentLit frag = ShaderFragmentLit();;
+    ShaderFragmentLit frag = ShaderFragmentLit();
 public:
     Eigen::Vector3f GetColor(void);
 

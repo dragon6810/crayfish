@@ -93,8 +93,9 @@ void Triangle::Draw(ShaderFragment* frag)
     int mins[2], maxs[2];
     Eigen::Vector2f screentri[3];
     Eigen::Vector2f v;
-    Eigen::Vector3f barycentric, depths;
-    float depth;
+    Eigen::Vector3f barycentric, depths, ws, col, world, normal;
+    Eigen::Vector4f screenpos;
+    float depth, w;
 
     if(!this->rendertarget)
     {
@@ -106,7 +107,10 @@ void Triangle::Draw(ShaderFragment* frag)
     {
         screentri[i].x() = ( this->points[i].x() / 2.0 + 0.5) * this->rendertarget->size[0];
         screentri[i].y() = (-this->points[i].y() / 2.0 + 0.5) * this->rendertarget->size[1];
-        depths[i] = 1.0 / this->points[i][2];
+
+        ws[i] = 1.0 / this->points[i][3];
+        depths[i] = this->points[i][2] * ws[i];
+
         if(screentri[i].x() < mins[0] || !i)
             mins[0] = screentri[i].x();
         if(screentri[i].y() < mins[1] || !i)
@@ -139,8 +143,20 @@ void Triangle::Draw(ShaderFragment* frag)
 
             v = Eigen::Vector2f(x, y);
             barycentric = GetBarycentric(v, screentri);
-            depth = 1.0 / barycentric.dot(depths);
+            depth = barycentric.dot(depths) / barycentric.dot(ws);
+            w = 1.0 / barycentric.dot(ws);
+            screenpos[2] = depth;
             depth = depth / 2.0 + 0.5;
+            screenpos[0] = v[0] / this->rendertarget->size[0] * 2.0 - 1.0;
+            screenpos[1] = -(v[1] / this->rendertarget->size[1] * 2.0 - 1.0);
+            screenpos[3] = w;
+
+            normal = world = Eigen::Vector3f::Zero();
+            for(i=0; i<3; i++)
+            {
+                normal += this->normals[i] * barycentric[i];
+                world += this->world[i] * barycentric[i];
+            }
 
             this->rendertarget->locks[p]->lock();
             if(depth > this->rendertarget->depths[p])
@@ -150,7 +166,14 @@ void Triangle::Draw(ShaderFragment* frag)
             }
 
             this->rendertarget->depths[p] = depth;
-            this->rendertarget->pixels[p] = this->color;
+            if(frag)
+                col = frag->Fragment(screenpos, world, Eigen::Vector3f::Zero(), normal);
+            else
+                col = Eigen::Vector3f(1.0, 0.0, 1.0);
+            this->rendertarget->pixels[p] = 0xFF000000;
+            this->rendertarget->pixels[p] |= ((uint32_t) (col[0] * 255.0)) << 16;
+            this->rendertarget->pixels[p] |= ((uint32_t) (col[1] * 255.0)) <<  8;
+            this->rendertarget->pixels[p] |= ((uint32_t) (col[2] * 255.0)) <<  0;
 
             this->rendertarget->locks[p]->unlock();
         }

@@ -99,7 +99,10 @@ void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rend
         tri[i] = screenpoints[i];
         normal4[3] = 0; // to not to translation
         for(j=0; j<3; j++)
+        {
             normal4[j] = this->points[indices[i]].normal[j];
+            tri.world[i][j] = worldpoints[i][j];
+        }
         normal4 = this->transform * normal4;
         for(j=0; j<3; j++)
             tri.normals[i][j] = normal4[j];
