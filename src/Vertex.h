@@ -7,6 +7,6 @@ class Vertex
 public:
     Eigen::Vector3f pos;
     Eigen::Vector3f normal;
-    Eigen::Vector3f tex;
+    Eigen::Vector2f tex;
     std::vector<uint32_t> faces;
 };

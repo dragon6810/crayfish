@@ -169,7 +169,7 @@ void Triangle::Draw(ShaderFragment* frag)
 
             this->rendertarget->depths[p] = depth;
             if(frag)
-                col = frag->Fragment(screenpos, world, Eigen::Vector3f::Zero(), normal);
+                col = frag->Fragment(screenpos, world, Eigen::Vector2f::Zero(), normal);
             else
                 col = Eigen::Vector3f(1.0, 0.0, 1.0);
             this->rendertarget->pixels[p] = Eigen::Vector4f(1.0, col[0], col[1], col[2]);

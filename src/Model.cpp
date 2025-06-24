@@ -123,14 +123,12 @@ Model Model::PrimitiveCube(void)
 
 Model Model::LoadOBJ(const char* path)
 {
-    int i, j;
-    std::vector<uint64_t>::iterator it;
+    int iv, i, j;
 
     char mode;
     Vertex v;
     Model m;
     uint64_t f[3];
-    std::vector<uint64_t> needsnormals;
     Eigen::Vector3f n, a, b, fn;
     uint64_t tri[3];
 
@@ -171,20 +169,19 @@ Model Model::LoadOBJ(const char* path)
             m.points.push_back(v);
             break;
         case 'f':
-            if(fscanf(ptr, " %llu %llu %llu", &f[0], &f[1], &f[2]) != 3)
+            if(fscanf(ptr, " %llu %llu %llu", &f[0], &f[1], &f[2]) == 3)
             {
-                fprintf(stderr, "error in obj \"%s\": expected face definition.\n", path);
+                m.points[f[2] - 1].faces.push_back(m.indices.size() / 3);
+                m.points[f[1] - 1].faces.push_back(m.indices.size() / 3);
+                m.points[f[0] - 1].faces.push_back(m.indices.size() / 3);
+                m.indices.push_back(f[2] - 1);
+                m.indices.push_back(f[1] - 1);
+                m.indices.push_back(f[0] - 1);
+                
                 break;
             }
-            m.points[f[2] - 1].faces.push_back(m.indices.size() / 3);
-            m.points[f[1] - 1].faces.push_back(m.indices.size() / 3);
-            m.points[f[0] - 1].faces.push_back(m.indices.size() / 3);
-            m.indices.push_back(f[2] - 1);
-            m.indices.push_back(f[1] - 1);
-            m.indices.push_back(f[0] - 1);
-            needsnormals.push_back(f[2] - 1);
-            needsnormals.push_back(f[1] - 1);
-            needsnormals.push_back(f[0] - 1);
+
+            fprintf(stderr, "error in obj \"%s\": expected face definition.\n", path);
             break;
         default:
             fprintf(stderr, "error in obj \"%s\": expected vertex or face definition.\n", path);
@@ -196,23 +193,23 @@ Model Model::LoadOBJ(const char* path)
 
     fclose(ptr);
 
-    for(it=needsnormals.begin(); it!=needsnormals.end(); it++)
+    for(iv=0; iv<m.points.size(); iv++)
     {
-        if(m.points[*it].normal != Eigen::Vector3f::Zero())
+        if(m.points[iv].normal != Eigen::Vector3f::Zero())
             continue;
 
         n = Eigen::Vector3f::Zero();
-        for(i=0; i<m.points[*it].faces.size(); i++)
+        for(i=0; i<m.points[iv].faces.size(); i++)
         {
             for(j=0; j<3; j++)
-                tri[j] = m.indices[m.points[*it].faces[i] * 3 + j];
+                tri[j] = m.indices[m.points[iv].faces[i] * 3 + j];
             a = (m.points[tri[1]].pos - m.points[tri[0]].pos).normalized();
             b = (m.points[tri[2]].pos - m.points[tri[0]].pos).normalized();
             fn = a.cross(b);
             n += fn;
         }
         n.normalize();
-        m.points[*it].normal = -n; // I need to flip this. I don't know why, but I don't like it.
+        m.points[iv].normal = -n; // I need to flip this. I don't know why, but I don't like it.
     }
 
     return m;

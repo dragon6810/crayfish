@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 
     int nthreads;
 
-    RenderFrame frame(128, 128, true);
+    RenderFrame frame(1024, 1024, true);
     CameraPerspective camera;
     Scene scene;
     Model teapot, bunny;

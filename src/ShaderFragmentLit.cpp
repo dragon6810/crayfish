@@ -1,6 +1,6 @@
 #include "ShaderFragmentLit.h"
 
-Eigen::Vector3f ShaderFragmentLit::Fragment(Eigen::Vector4f screenpos, Eigen::Vector3f worldpos, Eigen::Vector3f uvw, Eigen::Vector3f normal)
+Eigen::Vector3f ShaderFragmentLit::Fragment(Eigen::Vector4f screenpos, Eigen::Vector3f worldpos, Eigen::Vector2f texcoord, Eigen::Vector3f normal)
 {
     normal.normalize();
 
