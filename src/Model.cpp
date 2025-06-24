@@ -48,7 +48,7 @@ void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rend
         normals[i][3] = 0.0;
         
         worldpoints[i] = this->transform * mdlpoints[i];
-        normals[i] = this->transform * normals[i];
+        normals[i] = (this->transform * normals[i]).normalized();
 
         viewpoints[i] = camera->GetViewMatrix() * worldpoints[i];
         
@@ -212,7 +212,7 @@ Model Model::LoadOBJ(const char* path)
             n += fn;
         }
         n.normalize();
-        m.points[*it].normal = n;
+        m.points[*it].normal = -n; // I need to flip this. I don't know why, but I don't like it.
     }
 
     return m;

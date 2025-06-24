@@ -52,7 +52,7 @@ int main(int argc, char** argv)
     teapot = Model::LoadOBJ("teapot.obj");
     teapot.SetScale(Eigen::Vector3f(0.75, 0.75, 0.75));
     teapot.SetPosition(Eigen::Vector3f(1.0, -2.0, 2.0));
-    //teapot.SetRotation(Eigen::Quaternionf(Eigen::AngleAxisf(-M_PI / 4.0, Eigen::Vector3f::UnitY())));
+    teapot.SetRotation(Eigen::Quaternionf(Eigen::AngleAxisf(-M_PI / 4.0, Eigen::Vector3f::UnitY())));
     teapot.material = matptr;
     scene.models.push_back(teapot);
 
