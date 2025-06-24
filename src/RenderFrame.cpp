@@ -52,9 +52,9 @@ void RenderFrame::WritePng(const char* name)
 
         intpixels[i]  = 0;
         intpixels[i] |= ((uint32_t) (curp[0] * 255.0)) << 24;
-        intpixels[i] |= ((uint32_t) (curp[1] * 255.0)) << 16;
+        intpixels[i] |= ((uint32_t) (curp[3] * 255.0)) << 16;
         intpixels[i] |= ((uint32_t) (curp[2] * 255.0)) <<  8;
-        intpixels[i] |= ((uint32_t) (curp[3] * 255.0)) <<  0;
+        intpixels[i] |= ((uint32_t) (curp[1] * 255.0)) <<  0;
     }
 
     pngptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);

@@ -6,5 +6,5 @@ Eigen::Vector3f ShaderFragmentLit::Fragment(Eigen::Vector4f screenpos, Eigen::Ve
 
     return normal * 0.5 + 0.5 * Eigen::Vector3f::Ones();
 
-    return this->color * normal.dot(-Eigen::Vector3f::UnitY());
+    return this->color * normal.dot(Eigen::Vector3f::UnitY());
 }

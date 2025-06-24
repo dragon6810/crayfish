@@ -33,58 +33,39 @@ void Model::ComputeTransform(void)
     this->transform = translate * rotate4 * scale;
 }
 
-void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rendertarget, uint32_t color)
+void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rendertarget)
 {
     int i, j;
 
-    float light;
-    Eigen::Vector3f vcolor;
-    Eigen::Vector3f a, b, normal;
-    Eigen::Vector4f mdlpoints[3], worldpoints[3], viewpoints[3], screenpoints[3];
-    Eigen::Vector4f normal4;
+    Eigen::Vector4f mdlpoints[3], normals[3], worldpoints[3], viewpoints[3], screenpoints[3];
     Triangle tri(*rendertarget);
 
     for(i=0; i<3; i++)
+    {
+        mdlpoints[i].head<3>() = this->points[indices[i]].pos;
+        normals[i].head<3>()   = this->points[indices[i]].normal;
         mdlpoints[i][3] = 1.0;
+        normals[i][3] = 0.0;
         
-    for(i=0; i<3; i++)
-    {
-        mdlpoints[0][i] = this->points[indices[0]].pos[i];
-        mdlpoints[1][i] = this->points[indices[1]].pos[i];
-        mdlpoints[2][i] = this->points[indices[2]].pos[i];
-    }
-
-    for(i=0; i<3; i++)
         worldpoints[i] = this->transform * mdlpoints[i];
+        normals[i] = this->transform * normals[i];
 
-    for(i=0; i<3; i++)
         viewpoints[i] = camera->GetViewMatrix() * worldpoints[i];
-
-    for(i=0; i<3; i++)
-    {
+        
         screenpoints[i] = camera->GetProjectionMatrix() * viewpoints[i];
-        screenpoints[i][0] /= screenpoints[i][3];
-        screenpoints[i][1] /= screenpoints[i][3];
-        screenpoints[i][2] /= screenpoints[i][3];
+        screenpoints[i].head<3>() /= screenpoints[i][3];
+        
         if(screenpoints[i][2] > 1 || screenpoints[i][2] < -1)
             return;
-    }
 
-    for(i=0; i<3; i++)
-    {
         tri[i] = screenpoints[i];
-        normal4[3] = 0; // to not to translation
         for(j=0; j<3; j++)
         {
-            normal4[j] = this->points[indices[i]].normal[j];
+            tri.normals[i][j] = normals[i][j];
             tri.world[i][j] = worldpoints[i][j];
         }
-        //normal4 = this->transform * normal4;
-        for(j=0; j<3; j++)
-            tri.normals[i][j] = normal4[j];
-        tri.normals[i] = this->points[indices[i]].normal;
     }
-    tri.SetColor(color);
+
     tri.Draw(this->material->GetFragmentShader());
 }
 
@@ -310,7 +291,7 @@ void Model::Render(const Camera* camera, RenderFrame* rendertarget)
             {
                 for(j=0; j<3; j++)
                     v[j] = this->indices[i * 3 + j];
-                this->DrawModelTri(v, camera, rendertarget, Random::UInt(i) | 0xFF000000);
+                this->DrawModelTri(v, camera, rendertarget);
             }
         });
     }

@@ -17,7 +17,7 @@ private:
     Eigen::Matrix4f transform;
 
     void ComputeTransform(void);
-    void DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rendertarget, uint32_t color=0xFFFFFFFF);
+    void DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rendertarget);
 public:
     std::vector<Vertex> points;
     std::vector<uint64_t> indices;

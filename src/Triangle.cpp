@@ -113,9 +113,9 @@ void Triangle::Draw(ShaderFragment* frag)
 
         for(j=0; j<2; j++)
         {
-            if(screentri[i][j] < mins[j] || !i)
+            if(!i || screentri[i][j] < mins[j])
                 mins[j] = screentri[i][j];
-            if(screentri[i][j] > maxs[j] || !i)
+            if(!i || screentri[i][j] > maxs[j])
                 maxs[j] = screentri[i][j];
         }
     }
@@ -157,6 +157,7 @@ void Triangle::Draw(ShaderFragment* frag)
             }
             world /= w;
 
+            // depth-testing and pixel writing
             depth = depth / 2.0 + 0.5;
 
             this->rendertarget->locks[p]->lock();
