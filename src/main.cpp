@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 
     int nthreads;
 
-    RenderFrame frame(128, 128, true);
+    RenderFrame frame(1024, 1024, true);
     CameraPerspective camera;
     Scene scene;
     Model teapot, bunny, cake;
@@ -46,6 +46,7 @@ int main(int argc, char** argv)
 
     mat = MaterialLit();
     mat.Texture().LoadPNG("cake.png");
+    mat.Texture().filter = Texture2d::FILTERTYPE_LINEAR;
     matptr = std::make_shared<MaterialLit>(mat);
     assert(matptr->GetFragmentShader());
     scene.materials.push_back(matptr);

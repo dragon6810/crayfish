@@ -95,15 +95,46 @@ Eigen::Vector4f Texture2d::Lookup(Eigen::Vector2f texcoord)
     int i;
 
     Eigen::Vector2i pixels;
+    Eigen::Vector2f frac;
+    Eigen::Vector4f corners[4];
+    Eigen::Vector4f edges[2];
 
-    for(i=0; i<2; i++)
+    switch(this->filter)
     {
-        pixels[i] = texcoord[i] * this->size[i];
-        while(pixels[i] < 0)
-            pixels[i] += this->size[i];
-        pixels[i] = pixels[i] % this->size[i];
-    }
-    pixels[1] = this->size[1] - pixels[1];
+    case FILTERTYPE_NEAREST:
+        for(i=0; i<2; i++)
+        {
+            pixels[i] = roundf(texcoord[i] * this->size[i]);
+            while(pixels[i] < 0)
+                pixels[i] += this->size[i];
+            pixels[i] = pixels[i] % this->size[i];
+        }
+        pixels[1] = this->size[1] - pixels[1];
 
-    return this->data[pixels[1] * this->size[0] + pixels[0]];
+        return this->data[pixels[1] * this->size[0] + pixels[0]];
+    case FILTERTYPE_LINEAR:
+        texcoord[1] = 1.0 - texcoord[1];
+
+        for(i=0; i<2; i++)
+        {
+            texcoord[i] -= 0.5 / this->size[i]; // to make pixels at center not corner
+            pixels[i] = texcoord[i] * this->size[i];
+            frac[i] = texcoord[i] * this->size[i] - pixels[i];
+            while(pixels[i] < 0)
+                pixels[i] += this->size[i];
+            pixels[i] = pixels[i] % this->size[i];
+        }
+
+        corners[0] = this->data[((pixels[1] + 0) % this->size[1]) * this->size[0] + ((pixels[0] + 0) % this->size[0])];
+        corners[1] = this->data[((pixels[1] + 0) % this->size[1]) * this->size[0] + ((pixels[0] + 1) % this->size[0])];
+        corners[2] = this->data[((pixels[1] + 1) % this->size[1]) * this->size[0] + ((pixels[0] + 0) % this->size[0])];
+        corners[3] = this->data[((pixels[1] + 1) % this->size[1]) * this->size[0] + ((pixels[0] + 1) % this->size[0])];
+
+        edges[0] = corners[0] + (corners[2] - corners[0]) * frac[1];
+        edges[1] = corners[1] + (corners[3] - corners[1]) * frac[1];
+
+        return edges[0] + (edges[1] - edges[0]) * frac[0];
+    default:
+        return Eigen::Vector4f(1.0, 1.0, 0.0, 1.0);
+    }
 }

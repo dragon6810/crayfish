@@ -10,6 +10,14 @@ private:
     std::vector<Eigen::Vector4f> data = {};
     Eigen::Vector2i size = Eigen::Vector2i(0, 0);
 public:
+    typedef enum
+    {
+        FILTERTYPE_NEAREST=0,
+        FILTERTYPE_LINEAR=1
+    } filtertype_e;
+
+    filtertype_e filter = FILTERTYPE_LINEAR;
+
     Texture2d(void);
     Texture2d(const char* path);
 
