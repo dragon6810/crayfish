@@ -45,6 +45,7 @@ int main(int argc, char** argv)
     scene.SetRenderTarget(frame);
 
     mat = MaterialLit();
+    mat.Texture().LoadPNG("cake.png");
     matptr = std::make_shared<MaterialLit>(mat);
     assert(matptr->GetFragmentShader());
     scene.materials.push_back(matptr);

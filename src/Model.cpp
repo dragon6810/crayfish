@@ -63,6 +63,7 @@ void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rend
         screen2[i][1] = screenpoints[i][1];
 
         tri[i] = screenpoints[i];
+        tri.texcoords[i] = this->points[indices[i]].tex;
         for(j=0; j<3; j++)
         {
             tri.normals[i][j] = normals[i][j];

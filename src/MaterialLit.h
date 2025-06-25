@@ -11,6 +11,8 @@ public:
     Eigen::Vector3f GetColor(void);
 
     void SetColor(Eigen::Vector3f color);
+    
+    Texture2d& Texture(void);
 
     virtual ShaderFragment* GetFragmentShader(void) override;
 };

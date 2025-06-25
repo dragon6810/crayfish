@@ -38,6 +38,7 @@ add_executable(Crayfish ${SOURCES}
     "src/Material.cpp"
     "src/ShaderFragmentLit.cpp"
     "src/MaterialLit.cpp"
+    "src/Texture2d.cpp"
 )
 
 set_target_properties(Crayfish PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")

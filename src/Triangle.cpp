@@ -91,8 +91,7 @@ void Triangle::Draw(ShaderFragment* frag)
     int i, j, x, y, p;
 
     int mins[2], maxs[2];
-    Eigen::Vector2f screentri[3];
-    Eigen::Vector2f v;
+    Eigen::Vector2f screentri[3], v, texcoord;
     Eigen::Vector3f barycentric, depths, ws, col, world, normal;
     Eigen::Vector4f screenpos;
     float depth, w;
@@ -149,13 +148,16 @@ void Triangle::Draw(ShaderFragment* frag)
             screenpos[2] = depth;
             screenpos[3] = w;
 
+            texcoord = Eigen::Vector2f::Zero();
             normal = world = Eigen::Vector3f::Zero();
             for(i=0; i<3; i++)
             {
                 normal += this->normals[i] * ws[i] * barycentric[i];
                 world += this->world[i] * ws[i] * barycentric[i];
+                texcoord += this->texcoords[i] * ws[i] * barycentric[i];
             }
-            world /= w;
+            world *= w;
+            texcoord *= w;
 
             // depth-testing and pixel writing
             depth = depth / 2.0 + 0.5;
@@ -169,7 +171,7 @@ void Triangle::Draw(ShaderFragment* frag)
 
             this->rendertarget->depths[p] = depth;
             if(frag)
-                col = frag->Fragment(screenpos, world, Eigen::Vector2f::Zero(), normal);
+                col = frag->Fragment(screenpos, world, texcoord, normal);
             else
                 col = Eigen::Vector3f(1.0, 0.0, 1.0);
             this->rendertarget->pixels[p] = Eigen::Vector4f(1.0, col[0], col[1], col[2]);
