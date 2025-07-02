@@ -91,7 +91,7 @@ void Triangle::Draw(ShaderFragment* frag)
     int i, j, x, y, p;
 
     int mins[2], maxs[2];
-    Eigen::Vector2f screentri[3], v, texcoord;
+    Eigen::Vector2f pixels[3], v, texcoord;
     Eigen::Vector3f barycentric, depths, ws, col, world, normal;
     Eigen::Vector4f screenpos;
     float depth, w;
@@ -104,18 +104,18 @@ void Triangle::Draw(ShaderFragment* frag)
 
     for(i=0; i<3; i++)
     {
-        screentri[i][0] = ( this->points[i].x() / 2.0 + 0.5) * this->rendertarget->size[0];
-        screentri[i][1] = (-this->points[i].y() / 2.0 + 0.5) * this->rendertarget->size[1];
+        pixels[i][0] = ( this->points[i][0] / 2.0 + 0.5) * this->rendertarget->size[0];
+        pixels[i][1] = (-this->points[i][1] / 2.0 + 0.5) * this->rendertarget->size[1];
 
-        ws[i] = 1.0 / this->points[i][3];
-        depths[i] = this->points[i][2] * ws[i];
+        ws[i] = this->points[i][3];
+        depths[i] = this->points[i][2] / ws[i];
 
         for(j=0; j<2; j++)
         {
-            if(!i || screentri[i][j] < mins[j])
-                mins[j] = screentri[i][j];
-            if(!i || screentri[i][j] > maxs[j])
-                maxs[j] = screentri[i][j];
+            if(!i || pixels[i][j] < mins[j])
+                mins[j] = pixels[i][j];
+            if(!i || pixels[i][j] > maxs[j])
+                maxs[j] = pixels[i][j];
         }
     }
 
@@ -132,32 +132,16 @@ void Triangle::Draw(ShaderFragment* frag)
         p = this->rendertarget->size[0] * y + mins[0];
         for(x=mins[0]; x<=maxs[0]; x++, p++)
         {
-            if(!this->PointInTriangle(Eigen::Vector2f(x, y), screentri))
-                continue;
-
             v = Eigen::Vector2f(x, y);
 
-            barycentric = GetBarycentric(v, screentri);
+            if(!this->PointInTriangle(v, pixels))
+                continue;
+
+            barycentric = GetBarycentric(v, pixels);
             
             // interpolation
-            w = 1.0 / barycentric.dot(ws);
+            w = 1.0 / barycentric.dot(ws.cwiseInverse());
             depth = barycentric.dot(depths) * w;
-
-            screenpos[0] = v[0] / this->rendertarget->size[0] * 2.0 - 1.0;
-            screenpos[1] = -(v[1] / this->rendertarget->size[1] * 2.0 - 1.0);
-            screenpos[2] = depth;
-            screenpos[3] = w;
-
-            texcoord = Eigen::Vector2f::Zero();
-            normal = world = Eigen::Vector3f::Zero();
-            for(i=0; i<3; i++)
-            {
-                normal += this->normals[i] * ws[i] * barycentric[i];
-                world += this->world[i] * ws[i] * barycentric[i];
-                texcoord += this->texcoords[i] * ws[i] * barycentric[i];
-            }
-            world *= w;
-            texcoord *= w;
 
             // depth-testing and pixel writing
             depth = depth / 2.0 + 0.5;
@@ -169,11 +153,32 @@ void Triangle::Draw(ShaderFragment* frag)
                 continue;
             }
 
-            this->rendertarget->depths[p] = depth;
             if(frag)
+            {
+                screenpos[0] =   v[0] / this->rendertarget->size[0] * 2.0 - 1.0;
+                screenpos[1] = -(v[1] / this->rendertarget->size[1] * 2.0 - 1.0);
+                screenpos[2] = depth;
+                screenpos[3] = w;
+
+                texcoord = Eigen::Vector2f::Zero();
+                normal = world = Eigen::Vector3f::Zero();
+                for(i=0; i<3; i++)
+                {
+                    normal += this->normals[i] / ws[i] * barycentric[i];
+                    world += this->world[i] / ws[i] * barycentric[i];
+                    texcoord += this->texcoords[i] / ws[i] * barycentric[i];
+                }
+                world *= w;
+                texcoord *= w;
+
                 col = frag->Fragment(screenpos, world, texcoord, normal);
+            }
             else
-                col = Eigen::Vector3f(1.0, 0.0, 1.0);
+            {
+                col = Eigen::Vector3f(1.0, 0.0, 1.0); // uh-oh, no shader given! return pepto bismol.
+            }
+
+            this->rendertarget->depths[p] = depth;
             this->rendertarget->pixels[p] = Eigen::Vector4f(1.0, col[0], col[1], col[2]);
 
             this->rendertarget->locks[p]->unlock();

@@ -6,7 +6,7 @@
 			[
 				{
 					"build" : ".",
-					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"jsonFile" : "directory-.-Release-f5ebdc15457944623624.json",
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.10"
@@ -20,7 +20,7 @@
 					]
 				}
 			],
-			"name" : "Debug",
+			"name" : "Release",
 			"projects" : 
 			[
 				{
@@ -41,14 +41,14 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "Crayfish::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Crayfish-Debug-2b2ee8fe9c21d60c6670.json",
+					"jsonFile" : "target-Crayfish-Release-48cdb8427d454d481f16.json",
 					"name" : "Crayfish",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "run-cppcheck::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-run-cppcheck-Debug-30d359949603545ee8a1.json",
+					"jsonFile" : "target-run-cppcheck-Release-d81b7b9ef891bb452d9c.json",
 					"name" : "run-cppcheck",
 					"projectIndex" : 0
 				}

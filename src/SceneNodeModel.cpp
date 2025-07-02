@@ -1,4 +1,4 @@
-#include "Model.h"
+#include "SceneNodeModel.h"
 
 #include <set>
 #include <thread>
@@ -7,71 +7,43 @@
 #include "Random.h"
 #include "Triangle.h"
 
-void Model::ComputeTransform(void)
+void Model::DrawModelTri(int indices[3], const SceneNodeCamera* camera, RenderFrame* rendertarget)
 {
     int i, j;
 
-    Eigen::Matrix3f rotate;
-    Eigen::Matrix4f rotate4, scale, translate;
+    Eigen::Vector4f modelspace, normal, worldspace, viewspace, clipspace;
+    Eigen::Vector2f clip2[3];
+    Triangle tri;
 
-    this->transform = Eigen::Matrix4f::Identity();
-
-    rotate = this->rotation.toRotationMatrix();
-    rotate4 = Eigen::Matrix4f::Identity();
-    for(i=0; i<3; i++)
-        for(j=0; j<3; j++)
-            rotate4(i, j) = rotate(i, j);
-    
-    scale = Eigen::Matrix4f::Identity();
-    for(i=0; i<3; i++)
-        scale(i, i) = this->scale[i];
-
-    translate = Eigen::Matrix4f::Identity();
-    for(i=0; i<3; i++)
-        translate(i, 3) = this->position[i];
-
-    this->transform = translate * rotate4 * scale;
-}
-
-void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rendertarget)
-{
-    int i, j;
-
-    Eigen::Vector4f mdlpoints[3], normals[3], worldpoints[3], viewpoints[3], screenpoints[3];
-    Eigen::Vector2f screen2[3];
-    Triangle tri(*rendertarget);
-
+    tri = Triangle(*rendertarget);
     for(i=0; i<3; i++)
     {
-        mdlpoints[i].head<3>() = this->points[indices[i]].pos;
-        normals[i].head<3>()   = this->points[indices[i]].normal;
-        mdlpoints[i][3] = 1.0;
-        normals[i][3] = 0.0;
+        modelspace.head<3>() = this->points[indices[i]].pos;
+        normal.head<3>() = this->points[indices[i]].normal;
+        modelspace[3] = 1.0;
+        normal[3] = 0.0;
         
-        worldpoints[i] = this->transform * mdlpoints[i];
-        normals[i] = (this->transform * normals[i]).normalized();
+        worldspace = this->GetTransform() * modelspace;
+        normal = (this->GetTransform() * normal).normalized();
 
-        viewpoints[i] = camera->GetViewMatrix() * worldpoints[i];
+        viewspace = camera->GetViewMatrix() * worldspace;
         
-        screenpoints[i] = camera->GetProjectionMatrix() * viewpoints[i];
-        screenpoints[i].head<3>() /= screenpoints[i][3];
+        clipspace = camera->GetProjectionMatrix() * viewspace;
+        clipspace.head<3>() /= clipspace[3];
         
-        if(screenpoints[i][2] > 1 || screenpoints[i][2] < -1)
+        // TODO: Clip triangle to frustum
+        if(clipspace[2] > 1 || clipspace[2] < -1)
             return;
 
-        screen2[i][0] = screenpoints[i][0];
-        screen2[i][1] = screenpoints[i][1];
+        clip2[i] = clipspace.head<2>();
 
-        tri[i] = screenpoints[i];
+        tri[i] = clipspace;
         tri.texcoords[i] = this->points[indices[i]].tex;
-        for(j=0; j<3; j++)
-        {
-            tri.normals[i][j] = normals[i][j];
-            tri.world[i][j] = worldpoints[i][j];
-        }
+        tri.normals[i] = normal.head<3>();
+        tri.world[i] = worldspace.head<3>();
     }
 
-    if(Triangle::TriangleArea(screen2) > 0)
+    if(Triangle::TriangleArea(clip2) > 0)
         return;
 
     tri.Draw(this->material->GetFragmentShader());
@@ -79,54 +51,7 @@ void Model::DrawModelTri(int indices[3], const Camera* camera, RenderFrame* rend
 
 Model::Model(void)
 {
-    this->ComputeTransform();
-}
-
-Model Model::PrimitiveCube(void)
-{
-    static const int faces[6][4] = 
-    {
-        {0, 1, 5, 4}, // Bottom (-Y)
-        {2, 6, 7, 3}, // Top (+Y)
-        {0, 4, 6, 2}, // Left (-X)
-        {3, 7, 5, 1}, // Right (+X)
-        {4, 5, 7, 6}, // Front (+Z)
-        {1, 0, 2, 3}, // Back (-Z)
-    };
-
-    int i, j;
-
-    Model model;
-    int v[4];
-
-    model.points.resize(8);
-    for (i=0; i<8; i++)
-    {
-        model.points[i].pos = Eigen::Vector3f
-        (
-            (i & 1 ? 0.5f : -0.5f),
-            (i & 2 ? 0.5f : -0.5f),
-            (i & 4 ? 0.5f : -0.5f)
-        );
-        //printf("%d: (%f %f %f)\n", i, model.points[i].pos[0], model.points[i].pos[1], model.points[i].pos[2]);
-    }
-
-    model.indices.reserve(6 * 2 * 3);
-    for (i=0; i<6; i++) 
-    {
-        for(j=0; j<4; j++)
-            v[j] = faces[i][j];
-
-        model.indices.push_back(v[0]);
-        model.indices.push_back(v[1]);
-        model.indices.push_back(v[2]);
-
-        model.indices.push_back(v[0]);
-        model.indices.push_back(v[2]);
-        model.indices.push_back(v[3]);
-    }
-
-    return model;
+    
 }
 
 Model Model::LoadOBJ(const char* path)
@@ -338,40 +263,7 @@ Model Model::LoadOBJ(const char* path)
     return m;
 }
 
-Eigen::Vector3f Model::GetPosition(void)
-{
-    return this->position;
-}
-
-Eigen::Quaternionf Model::GetRotation(void)
-{
-    return this->rotation;
-}
-
-Eigen::Vector3f Model::GetScale(void)
-{
-    return this->scale;
-}
-
-void Model::SetPosition(Eigen::Vector3f position)
-{
-    this->position = position;
-    this->ComputeTransform();
-}
-
-void Model::SetRotation(Eigen::Quaternionf rotation)
-{
-    this->rotation = rotation;
-    this->ComputeTransform();
-}
-
-void Model::SetScale(Eigen::Vector3f scale)
-{
-    this->scale = scale;
-    this->ComputeTransform();
-}
-
-void Model::Render(const Camera* camera, RenderFrame* rendertarget)
+void Model::Render(SceneNodeCamera* camera, RenderFrame* rendertarget)
 {
     int i, t;
 

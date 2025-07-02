@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Camera.h"
-#include "Model.h"
+#include "SceneNodeCamera.h"
+#include "SceneNodeModel.h"
 #include "RenderFrame.h"
 
 class Scene
@@ -10,10 +10,10 @@ private:
     RenderFrame *rendertarget = NULL;
 public:
     std::vector<Model> models;
-    std::unique_ptr<Camera> camera;
+    std::unique_ptr<SceneNodeCamera> camera;
     std::vector<std::shared_ptr<Material>> materials;
 
     void SetRenderTarget(RenderFrame& rendertarget);
 
-    void Render(const Camera* camera);
+    void Render(SceneNodeCamera* camera);
 };

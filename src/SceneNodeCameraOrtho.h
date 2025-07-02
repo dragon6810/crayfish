@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Camera.h"
+#include "SceneNodeCamera.h"
 
-class CameraOrtho : public Camera
+class SceneNodeCameraOrtho : public SceneNodeCamera
 {
 private:
     Eigen::Vector2f dimensions = Eigen::Vector2f(0, 0);
 
     void ComputeProjectionMatrix(void) override;
 public:
-    CameraOrtho(void);
+    SceneNodeCameraOrtho(void);
 
     Eigen::Vector2f GetDimensions(void);
 

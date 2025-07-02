@@ -43,7 +43,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : "Debug"
+			"value" : "Release"
 		},
 		{
 			"name" : "CMAKE_CACHEFILE_DIR",
@@ -1195,7 +1195,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[/opt/homebrew/lib/libpng.dylib][/opt/homebrew/include][v1.6.47()]"
+			"value" : "[/opt/homebrew/lib/libpng.dylib][/opt/homebrew/include][v1.6.49()]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_ZLIB",

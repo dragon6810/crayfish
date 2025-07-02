@@ -1,7 +1,6 @@
 #include <stdio.h>
 
-#include "CameraOrtho.h"
-#include "CameraPerspective.h"
+#include "SceneNodeCameraPerspective.h"
 #include "Config.h"
 #include "MaterialLit.h"
 #include "RenderFrame.h"
@@ -15,7 +14,7 @@ int main(int argc, char** argv)
     int nthreads;
 
     RenderFrame frame(1024, 1024, true);
-    CameraPerspective camera;
+    SceneNodeCameraPerspective camera;
     Scene scene;
     Model teapot, bunny, cake;
     MaterialLit mat;
@@ -66,13 +65,13 @@ int main(int argc, char** argv)
     
     cake = Model::LoadOBJ("cake.obj");
     cake.SetScale(0.15 * Eigen::Vector3f::Ones());
-    cake.SetPosition(Eigen::Vector3f(0.0, -2.0, 0.0));
+    cake.SetPosition(Eigen::Vector3f(0.0, -4.0, 0.0));
     cake.material = matptr;
     scene.models.push_back(cake);
     
     camera.SetPosition(Eigen::Vector3f(0, 0, 8));
 
-    scene.Render((Camera*)&camera);
+    scene.Render((SceneNodeCamera*)&camera);
     
     frame.WritePng("frame.png");
 }

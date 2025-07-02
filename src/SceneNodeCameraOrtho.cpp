@@ -1,11 +1,11 @@
-#include "CameraOrtho.h"
+#include "SceneNodeCameraOrtho.h"
 
-CameraOrtho::CameraOrtho(void) : Camera()
+SceneNodeCameraOrtho::SceneNodeCameraOrtho(void) : SceneNodeCamera()
 {
     this->ComputeProjectionMatrix();
 }
 
-void CameraOrtho::ComputeProjectionMatrix(void)
+void SceneNodeCameraOrtho::ComputeProjectionMatrix(void)
 {
     this->projection = Eigen::Matrix4f::Identity();
 
@@ -18,12 +18,12 @@ void CameraOrtho::ComputeProjectionMatrix(void)
     this->projection(2, 3) = -(this->far + this->near) / (this->far - this->near);
 }
 
-Eigen::Vector2f CameraOrtho::GetDimensions(void)
+Eigen::Vector2f SceneNodeCameraOrtho::GetDimensions(void)
 {
     return this->dimensions;
 }
 
-void CameraOrtho::SetDimensions(Eigen::Vector2f dimensions)
+void SceneNodeCameraOrtho::SetDimensions(Eigen::Vector2f dimensions)
 {
     this->dimensions = dimensions;
     this->ComputeProjectionMatrix();

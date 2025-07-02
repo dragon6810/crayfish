@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Camera.h"
+#include "SceneNodeCamera.h"
 
-class CameraPerspective : public Camera
+class SceneNodeCameraPerspective : public SceneNodeCamera
 {
 private:
     float fov = M_PI_2 * 2.0 / 3.0;
@@ -10,7 +10,7 @@ private:
 
     void ComputeProjectionMatrix(void) override;
 public:
-    CameraPerspective(void);
+    SceneNodeCameraPerspective(void);
 
     float GetFOV(void);
     float GetAspectRatio(void);

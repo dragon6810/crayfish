@@ -1,13 +1,13 @@
 #include "Scene.h"
 
-#include <sys/time.h>
+#include <sstream>
 
 void Scene::SetRenderTarget(RenderFrame& rendertarget)
 {
     this->rendertarget = &rendertarget;
 }
 
-void Scene::Render(const Camera* camera)
+void Scene::Render(SceneNodeCamera* camera)
 {
     int i;
 

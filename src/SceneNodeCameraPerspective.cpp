@@ -1,11 +1,11 @@
-#include "CameraPerspective.h"
+#include "SceneNodeCameraPerspective.h"
 
-CameraPerspective::CameraPerspective(void) : Camera()
+SceneNodeCameraPerspective::SceneNodeCameraPerspective(void) : SceneNodeCamera()
 {
     this->ComputeProjectionMatrix();
 }
 
-void CameraPerspective::ComputeProjectionMatrix(void)
+void SceneNodeCameraPerspective::ComputeProjectionMatrix(void)
 {
     Eigen::Vector2f screen;
 
@@ -27,23 +27,23 @@ void CameraPerspective::ComputeProjectionMatrix(void)
     this->projection(3, 3) = 0.0;
 }
 
-float CameraPerspective::GetFOV(void)
+float SceneNodeCameraPerspective::GetFOV(void)
 {
     return this->fov;
 }
 
-float CameraPerspective::GetAspectRatio(void)
+float SceneNodeCameraPerspective::GetAspectRatio(void)
 {
     return this->aspect;
 }
 
-void CameraPerspective::SetFOV(float fov)
+void SceneNodeCameraPerspective::SetFOV(float fov)
 {
     this->fov = fov;
     this->ComputeProjectionMatrix();
 }
 
-void CameraPerspective::SetAspectRatio(float aspect)
+void SceneNodeCameraPerspective::SetAspectRatio(float aspect)
 {
     this->aspect = aspect;
     this->ComputeProjectionMatrix();
