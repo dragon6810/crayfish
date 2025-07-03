@@ -50,6 +50,11 @@ void SceneNode::BuildTransform(void)
     this->invtransform = invscale * invrotate4 * invtranslate;
 }
 
+Scene* SceneNode::GetScene(void) const
+{
+    return this->scene;
+}
+
 Eigen::Vector3f SceneNode::GetPosition(void) const
 {
     return this->position;
@@ -73,6 +78,11 @@ Eigen::Matrix4f SceneNode::GetTransform(void) const
 Eigen::Matrix4f SceneNode::GetInvTransform(void) const
 {
     return this->invtransform;
+}
+
+void SceneNode::SetScene(Scene *scene)
+{
+    this->scene = scene;
 }
 
 void SceneNode::SetPosition(Eigen::Vector3f position)

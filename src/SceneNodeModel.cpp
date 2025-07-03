@@ -43,7 +43,7 @@ void Model::DrawModelTri(int indices[3], const SceneNodeCamera* camera, RenderFr
         tri.world[i] = worldspace.head<3>();
     }
 
-    if(Triangle::TriangleArea(clip2) > 0)
+    if(Triangle::TriangleArea(clip2) >= 0) // this culls cw tris, but i feel like it should be culling ccw. whats going on?
         return;
 
     tri.Draw(this->material->GetFragmentShader());

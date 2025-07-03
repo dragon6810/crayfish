@@ -37,7 +37,7 @@ void RenderFrame::WritePng(const char* name)
     FILE *ptr;
     std::vector<uint32_t> intpixels;
     Eigen::Vector4f curp;
-
+    
     intpixels.resize(this->size[0] * this->size[1]);
     for(i=0; i<this->size[0] * this->size[1]; i++)
     {

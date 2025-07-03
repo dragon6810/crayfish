@@ -26,12 +26,16 @@ public:
     SceneNode(void);
     SceneNode(Scene *scene);
 
+    int parent = -1; // -1 means no parent
+
+    Scene* GetScene(void) const;
     Eigen::Vector3f GetPosition(void) const;
     Eigen::Quaternionf GetRotation(void) const;
     Eigen::Vector3f GetScale(void) const;
     Eigen::Matrix4f GetTransform(void) const;
     Eigen::Matrix4f GetInvTransform(void) const;
 
+    void SetScene(Scene *scene);
     void SetPosition(Eigen::Vector3f position);
     void SetRotation(Eigen::Quaternionf rotation);
     void SetScale(Eigen::Vector3f scale);
